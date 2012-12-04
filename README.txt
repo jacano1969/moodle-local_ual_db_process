@@ -1,0 +1,2 @@
+This Moodle plugin processes data from an external database to ensuure it is in a suitable form for the 'Enhanced
+Database Enrolment' plugin. This plug-in forms part of the University of the Arts London (UAL) Moodle project.
