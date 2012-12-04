@@ -77,6 +77,8 @@ define('UAL_ACTION_UPDATE_STUDENTS', 7);
 define('UAL_ACTION_REMOVE_REDUNDANT_STUDENTS', 8);
 define('UAL_ACTION_AUTH_USERS', 9);
 
+$action = UAL_ACTION_NONE;
+
 if (isset($_POST['create_new_students'])) {
     $action = UAL_ACTION_NEW_STUDENTS;
 }
