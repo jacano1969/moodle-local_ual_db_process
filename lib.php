@@ -28,7 +28,7 @@ require_once $CFG->dirroot . '/local/ual_api/connection.class.php';
 // User authentication is managed by this plugin but utilises dbsyncother...
 require($CFG->dirroot.'/auth/dbsyncother/auth.php');
 require_once($CFG->dirroot.'/course/lib.php');
-require($CFG->dirroot.'/enrol/databaseextended/lib.php');
+require_once($CFG->dirroot.'/enrol/databaseextended/lib.php');
 
 class target_mis {
     /** @var instance of connection class. Connects to external MIS database */
