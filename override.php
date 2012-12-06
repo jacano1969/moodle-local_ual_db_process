@@ -53,15 +53,16 @@ class override_form extends moodleform {
         $coursebuttonarray[] = &$mform->createElement('submit', 'delete_redundant_courses', get_string('delete_redundant_courses', 'local_ual_db_process'));
         $mform->addGroup($coursebuttonarray, 'coursesbuttonar', '', array(' '), false);
 
-        $mform->addElement('header', 'enrolheader', get_string('enrol_header', 'local_ual_db_process'));
-        $enrolbuttonarray=array();
-        $enrolbuttonarray[] = &$mform->createElement('submit', 'update_enrolments', get_string('update_enrolments', 'local_ual_db_process'));
-        $mform->addGroup($enrolbuttonarray, 'enrolbuttonar', '', array(' '), false);
-
         $mform->addElement('header', 'authheader', get_string('auth_header', 'local_ual_db_process'));
         $authbuttonarray=array();
         $authbuttonarray[] = &$mform->createElement('submit', 'auth_users', get_string('auth_users', 'local_ual_db_process'));
         $mform->addGroup($authbuttonarray, 'authbuttonar', '', array(' '), false);
+
+        $mform->addElement('header', 'enrolheader', get_string('enrol_header', 'local_ual_db_process'));
+        $enrolbuttonarray=array();
+        $enrolbuttonarray[] = &$mform->createElement('submit', 'update_enrolments', get_string('update_enrolments', 'local_ual_db_process'));
+        $enrolbuttonarray[] = &$mform->createElement('submit', 'enrol_users', get_string('enrol_users', 'local_ual_db_process'));
+        $mform->addGroup($enrolbuttonarray, 'enrolbuttonar', '', array(' '), false);
     }                           // Close the function
 }                               // Close the class
 
@@ -70,12 +71,13 @@ define('UAL_ACTION_NONE', 0);
 define('UAL_ACTION_NEW_COURSES', 1);
 define('UAL_ACTION_UPDATE_COURSES', 2);
 define('UAL_ACTION_REMOVE_REDUNDANT_COURSES', 3);
-define('UAL_ACTION_UPDATE_ENROLMENTS', 4);
-define('UAL_ACTION_UPDATE_CATEGORY', 5);
-define('UAL_ACTION_NEW_STUDENTS', 6);
-define('UAL_ACTION_UPDATE_STUDENTS', 7);
-define('UAL_ACTION_REMOVE_REDUNDANT_STUDENTS', 8);
-define('UAL_ACTION_AUTH_USERS', 9);
+define('UAL_ACTION_UPDATE_ENROLMENT_TABLES', 4);
+define('UAL_ACTION_ENROL_USERS', 5);
+define('UAL_ACTION_UPDATE_CATEGORY', 6);
+define('UAL_ACTION_NEW_STUDENTS', 7);
+define('UAL_ACTION_UPDATE_STUDENTS', 8);
+define('UAL_ACTION_REMOVE_REDUNDANT_STUDENTS', 9);
+define('UAL_ACTION_AUTH_USERS', 10);
 
 $action = UAL_ACTION_NONE;
 
@@ -99,13 +101,19 @@ if (isset($_POST['delete_redundant_courses'])) {
     $action = UAL_ACTION_REMOVE_REDUNDANT_COURSES;
 }
 
-if (isset($_POST['update_enrolments'])) {
-    $action = UAL_ACTION_UPDATE_ENROLMENTS;
-}
-
 if (isset($_POST['auth_users'])) {
     $action = UAL_ACTION_AUTH_USERS;
 }
+
+if (isset($_POST['update_enrolments'])) {
+    $action = UAL_ACTION_UPDATE_ENROLMENT_TABLES;
+}
+
+if (isset($_POST['enrol_users'])) {
+    $action = UAL_ACTION_ENROL_USERS;
+}
+
+
 
 $PAGE->set_url('/local/ual_db_process/override.php');
 $context = get_context_instance(CONTEXT_SYSTEM);
@@ -164,7 +172,7 @@ if($action != UAL_ACTION_NONE) {
                 $db_result = $mis->remove_redundant_courses($throttle);
                 break;
             // Course enrolments
-            case UAL_ACTION_UPDATE_ENROLMENTS:
+            case UAL_ACTION_UPDATE_ENROLMENT_TABLES:
                 // Remove enrolment views.
                 $db_result = $mis->remove_enrolment_views();
                 // Create the necessary views on to the data.
