@@ -64,8 +64,8 @@ $string[ 'create_new_courses' ]             =   'Create new';
 $string[ 'update_current_courses' ]         =   'Update current';
 $string[ 'delete_redundant_courses' ]       =   'Delete redundant';
 $string[ 'enrol_header' ]                   =   'Enrolments';
-$string[ 'update_enrolments' ]              =   'Update';
-$string[ 'enrol' ]                          =   'Enrol';
+$string[ 'update_enrolments']               =   'Update internal tables';
+$string[ 'enrol_users' ]                    =   'Enrol';
 $string[ 'auth_header' ]                    =   'User Authentication';
 $string[ 'auth_users' ]                     =   'Authenticate';
 
