@@ -166,7 +166,7 @@ class target_mis {
             $result[] = $sqlres;
 
             $initial_select = "SELECT
-                                u.STUDENTID AS SOURCE_STUDENTID,
+                                LOWER(u.STUDENTID) AS SOURCE_STUDENTID,
                                 u.FIRSTNAME AS SOURCE_FIRSTNAME,
                                 u.LASTNAME AS SOURCE_LASTNAME,
                                 u.EMAIL AS SOURCE_EMAIL,
@@ -178,7 +178,7 @@ class target_mis {
                                 db_proc.INSTITUTION AS TARGET_COLLEGE
                                 FROM
                                 users AS u
-                                LEFT JOIN db_process_users AS db_proc ON u.STUDENTID=db_proc.USERNAME
+                                LEFT JOIN db_process_users AS db_proc ON LOWER(u.STUDENTID)=db_proc.USERNAME
                                 WHERE db_proc.USERNAME IS NULL AND u.STUDENTID IS NOT NULL";
 
             if($throttle > 0) {
@@ -242,14 +242,14 @@ class target_mis {
                                 db_proc.LASTNAME AS TARGET_LASTNAME,
                                 db_proc.EMAIL AS TARGET_EMAIL,
                                 db_proc.INSTITUTION AS TARGET_COLLEGE,
-                                u.STUDENTID AS SOURCE_STUDENTID,
+                                LOWER(u.STUDENTID) AS SOURCE_STUDENTID,
                                 u.FIRSTNAME AS SOURCE_FIRSTNAME,
                                 u.LASTNAME AS SOURCE_LASTNAME,
                                 u.EMAIL AS SOURCE_EMAIL,
                                 u.COLLEGE AS SOURCE_COLLEGE
                                 FROM
                                 db_process_users AS db_proc
-                                INNER JOIN users AS u ON db_proc.USERNAME=u.STUDENTID
+                                INNER JOIN users AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
                                                         AND (db_proc.FIRSTNAME IS NOT u.FIRSTNAME OR
                                                              db_proc.LASTNAME IS NOT u.LASTNAME OR
                                                              db_proc.EMAIL IS NOT u.EMAIL OR
@@ -315,10 +315,10 @@ class target_mis {
             // Perform a SELECT DISTINCT as we are ignoring colleges.
             $initial_select = "SELECT DISTINCT
                                 db_proc.USERNAME AS TARGET_STUDENTID,
-                                u.STUDENTID AS SOURCE_STUDENTID
+                                LOWER(u.STUDENTID) AS SOURCE_STUDENTID
                                 FROM
                                 db_process_users AS db_proc
-                                LEFT JOIN users AS u ON db_proc.USERNAME=c.STUDENTID
+                                LEFT JOIN users AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
                                 WHERE u.STUDENTID IS NOT NULL";
 
             if($throttle > 0) {
@@ -411,7 +411,7 @@ class target_mis {
 
             if($sqlres) {
                 $sql = "INSERT INTO db_process_courses(COURSE_ID,COURSE_NAME,COURSE_SHORTNAME,COURSE_CATEGORY)
-                        SELECT SOURCE_COURSEID,SOURCE_DESCRIPTION,SOURCE_FULL_NAME,'{$category}'
+                        SELECT SOURCE_COURSEID,SOURCE_FULL_NAME,SOURCE_COURSEID,'{$category}'
                         FROM temp_table
                         LEFT JOIN db_process_courses AS db_proc
                         ON temp_table.SOURCE_COURSEID = db_proc.COURSE_ID
@@ -484,7 +484,7 @@ class target_mis {
                         SET
                         db_process_courses.COURSE_ID=temp_table.TARGET_COURSE_ID,
                         db_process_courses.COURSE_NAME=temp_table.SOURCE_DESCRIPTION,
-                        db_process_courses.COURSE_SHORTNAME=temp_table.SOURCE_FULL_NAME,
+                        db_process_courses.COURSE_SHORTNAME=temp_table.TARGET_COURSE_ID,
                         db_process_courses.COURSE_CATEGORY='{$category}'";
 
                 $sqlres = $this->mis->execute($sql);
@@ -819,10 +819,6 @@ class target_mis {
     }
 
     public function enrol_users() {
-        if (!enrol_is_enabled('databaseextended')) {
-            die('enrol_databaseextended plugin is disabled, sync is disabled');
-        }
-
         $enrol = enrol_get_plugin('databaseextended');
 
         $tables = array('course_categories',
