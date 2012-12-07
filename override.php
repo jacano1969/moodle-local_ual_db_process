@@ -63,6 +63,11 @@ class override_form extends moodleform {
         $enrolbuttonarray[] = &$mform->createElement('submit', 'update_enrolments', get_string('update_enrolments', 'local_ual_db_process'));
         $enrolbuttonarray[] = &$mform->createElement('submit', 'enrol_users', get_string('enrol_users', 'local_ual_db_process'));
         $mform->addGroup($enrolbuttonarray, 'enrolbuttonar', '', array(' '), false);
+
+        $mform->addElement('header', 'syncheader', get_string('sync_header', 'local_ual_db_process'));
+        $syncbuttonarray=array();
+        $syncbuttonarray[] = &$mform->createElement('submit', 'perform_sync', get_string('perform_sync', 'local_ual_db_process'));
+        $mform->addGroup($syncbuttonarray, 'syncbuttonar', '', array(' '), false);
     }                           // Close the function
 }                               // Close the class
 
@@ -78,6 +83,7 @@ define('UAL_ACTION_NEW_STUDENTS', 7);
 define('UAL_ACTION_UPDATE_STUDENTS', 8);
 define('UAL_ACTION_REMOVE_REDUNDANT_STUDENTS', 9);
 define('UAL_ACTION_AUTH_USERS', 10);
+define('UAL_ACTION_SYNC', 11);
 
 $action = UAL_ACTION_NONE;
 
@@ -113,7 +119,9 @@ if (isset($_POST['enrol_users'])) {
     $action = UAL_ACTION_ENROL_USERS;
 }
 
-
+if (isset($_POST['perform_sync'])) {
+    $action = UAL_ACTION_SYNC;
+}
 
 $PAGE->set_url('/local/ual_db_process/override.php');
 $context = get_context_instance(CONTEXT_SYSTEM);
@@ -194,6 +202,9 @@ if($action != UAL_ACTION_NONE) {
                 break;
             case UAL_ACTION_ENROL_USERS:
                 $db_result = $mis->enrol_users(false, false);
+                break;
+            case UAL_ACTION_SYNC:
+                $db_result = $mis->perform_sync();
                 break;
             default: break;
         }
