@@ -166,7 +166,8 @@ if($action != UAL_ACTION_NONE) {
                 $db_result = $mis->create_new_courses($throttle, $targetcategory);
                 break;
             case UAL_ACTION_UPDATE_COURSES:
-                $db_result = $mis->update_courses($throttle);
+                $targetcategory = get_config('local_ual_db_process', 'targetcategory');
+                $db_result = $mis->update_courses($throttle, $targetcategory);
                 break;
             case UAL_ACTION_REMOVE_REDUNDANT_COURSES:
                 $db_result = $mis->remove_redundant_courses($throttle);
