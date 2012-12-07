@@ -483,7 +483,7 @@ class target_mis {
                         ON db_process_courses.COURSE_ID=temp_table.TARGET_COURSE_ID
                         SET
                         db_process_courses.COURSE_ID=temp_table.TARGET_COURSE_ID,
-                        db_process_courses.COURSE_NAME=temp_table.SOURCE_DESCRIPTION,
+                        db_process_courses.COURSE_NAME=temp_table.SOURCE_FULL_NAME,
                         db_process_courses.COURSE_SHORTNAME=temp_table.TARGET_COURSE_ID,
                         db_process_courses.COURSE_CATEGORY='{$category}'";
 
@@ -600,7 +600,7 @@ class target_mis {
 
         if($sqlres) {
             $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME)
-                    SELECT USER_ID,COURSE_ID,ROLE_NAME FROM student_unit_enrolment";
+                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME FROM student_unit_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -624,8 +624,8 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID)
-                    SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID FROM student_course_enrolment";
+            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -650,7 +650,7 @@ class target_mis {
 
         if($sqlres) {
             $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID)
-                    SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID FROM student_course_all_years_enrolment";
+                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID FROM student_course_all_years_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -675,8 +675,8 @@ class target_mis {
 
         if($sqlres) {
             // Now copy over the data for student programmes enrolment...
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID)
-                    SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID FROM student_programme_enrolment";
+            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_programme_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -699,7 +699,7 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "DROP VIEW course_relationship";
+            $sql = "DROP TABLE course_relationship";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -749,11 +749,16 @@ class target_mis {
 
         // There is going to be a lot of data to process so create views...
         if($sqlres) {
-            $sql = "CREATE VIEW course_relationship AS
+            // The following table can take over a minute to construct
+            $sql = "CREATE TABLE course_relationship AS
                         SELECT
                             CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD) AS COURSE_ID,
-                            CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD) AS PARENTID
-                        FROM course_structure AS cs";
+                            c1.FULL_DESCRIPTION AS COURSE_NAME,
+                            CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD) AS PARENTID,
+                            c2.FULL_DESCRIPTION AS PARENT_NAME
+                        FROM course_structure AS cs
+                        LEFT JOIN courses AS c1 ON CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD)=c1.COURSEID
+                        LEFT JOIN courses AS c2 ON CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD)=c2.COURSEID";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -774,7 +779,8 @@ class target_mis {
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
 	                        '{$studentrole}' AS ROLE_NAME,
-	                        CONCAT(cr.PARENTID,'-',cr.COURSE_ID) AS GROUP_ID
+	                        CONCAT(cr.PARENTID,'-',cr.COURSE_ID) AS GROUP_ID,
+	                        cr.COURSE_NAME AS GROUP_NAME
                         FROM student_unit_enrolment AS unit_enrol
                         INNER JOIN course_relationship AS cr ON unit_enrol.COURSE_ID=cr.COURSE_ID
 	                    WHERE cr.PARENTID REGEXP '^[0-9]'";
@@ -782,6 +788,7 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // I'm not sure if we are going to have 'Course (all years)' full description so I'm going to leave it out for now...
             $sql = "CREATE VIEW student_course_all_years_enrolment AS
                         SELECT DISTINCT
 	                    course_enrol.USER_ID AS USER_ID,
@@ -798,7 +805,8 @@ class target_mis {
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
-                        CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSE_ID, 1, 7), SUBSTR(cr.COURSE_ID, -5, 5))) AS GROUP_ID
+                        CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSE_ID, 1, 7), SUBSTR(cr.COURSE_ID, -5, 5))) AS GROUP_ID,
+                        cr.COURSE_NAME AS GROUP_NAME
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSE_ID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
