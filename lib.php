@@ -114,6 +114,63 @@ class target_mis {
     public function db_reset() {
         $result = array();
 
+        // Are we connected?
+        if(!$this->is_connected()) {
+            $result[] = false;
+            return $result;
+        }
+
+        $sqlres = $this->mis->begin_transaction();
+        $result[] = $sqlres;
+
+        if($sqlres) {
+            $sql = "DROP TABLE IF EXISTS temp_table";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $this->remove_enrolment_views();
+
+            $sql = "CREATE TABLE IF NOT EXISTS db_process_category
+                   ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
+                     CATEGORY_ID varchar(254),
+                     CATEGORY_NAME varchar(255),
+                     CATEGORY_PARENT varchar(254) )";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE TABLE IF NOT EXISTS db_process_courses
+                   ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
+                     COURSE_ID varchar(254),
+                     COURSE_SHORTNAME varchar(100),
+                     COURSE_CATEGORY varchar(254) )";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE TABLE IF NOT EXISTS db_process_enrolments
+                   ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
+                     USER_ID varchar(254),
+                     COURSE_ID varchar(254),
+                     ROLE_NAME varchar(100),
+                     GROUP_ID varchar(254),
+                     GROUP_NAME varchar(254) )";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE TABLE IF NOT EXISTS db_process_users
+                   ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
+                     USERNAME varchar(254),
+                     FIRSTNAME varchar(254),
+                     LASTNAME varchar(254),
+                     EMAIL varchar(254),
+                     INSTITUTION varchar(254),
+                     IDNUMBER varchar(254) )";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sqlres = $this->mis->commit_transaction();
+            $result[] = $sqlres;
+        }
+
         return $result;
     }
 
@@ -122,6 +179,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -153,6 +211,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -195,8 +254,8 @@ class target_mis {
             $result[] = $sqlres;
 
             if($sqlres) {
-                $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION)
-                        SELECT SOURCE_STUDENTID,SOURCE_FIRSTNAME,SOURCE_LASTNAME,SOURCE_EMAIL,SOURCE_COLLEGE
+                $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
+                        SELECT SOURCE_STUDENTID,SOURCE_FIRSTNAME,SOURCE_LASTNAME,SOURCE_EMAIL,SOURCE_COLLEGE,SOURCE_STUDENTID
                         FROM temp_table
                         LEFT JOIN db_process_users AS db_proc
                         ON temp_table.SOURCE_STUDENTID = db_proc.USERNAME
@@ -223,6 +282,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -300,6 +360,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -319,7 +380,7 @@ class target_mis {
                                 FROM
                                 db_process_users AS db_proc
                                 LEFT JOIN users AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
-                                WHERE u.STUDENTID IS NOT NULL";
+                                WHERE u.STUDENTID IS NULL";
 
             if($throttle > 0) {
                 $initial_select .= " LIMIT 0,".$throttle;
@@ -335,16 +396,23 @@ class target_mis {
             $result[] = $sqlres;
 
             if($sqlres) {
-                // Delete students specified in the temp table
-                $students = $sqlres->getRows();
+                // How many students are in the temporary table?
+                $sql = "SELECT TARGET_STUDENTID FROM temp_table";
+                $sqlres = $this->mis->execute($sql);
+                $result[] = $sqlres;
 
-                foreach($students as $student) {
-                    $sql = "DELETE FROM db_process_users WHERE USERNAME='{$student->TARGET_STUDENTID}'";
+                if($sqlres) {
+                    // Delete students specified in the temp table
+                    $students = $sqlres->getRows();
 
-                    $sqlres = $this->mis->execute($sql);
-                    $result[] = $sqlres;
+                    foreach($students as $student) {
+                        $sql = "DELETE FROM db_process_users WHERE USERNAME='{$student->TARGET_STUDENTID}'";
 
-                    // TODO Need to output some debugging info here.
+                        $sqlres = $this->mis->execute($sql);
+                        $result[] = $sqlres;
+
+                        // TODO Need to output some debugging info here.
+                    }
                 }
 
                 // Drop temp table as a matter of course...
@@ -371,6 +439,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -438,6 +507,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -506,6 +576,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -570,6 +641,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -592,6 +664,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -617,6 +690,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -642,6 +716,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -667,6 +742,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -692,6 +768,7 @@ class target_mis {
         $result = array();
 
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -699,27 +776,27 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "DROP TABLE course_relationship";
+            $sql = "DROP TABLE IF EXISTS course_relationship";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW student_unit_enrolment";
+            $sql = "DROP VIEW IF EXISTS student_unit_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW student_course_enrolment";
+            $sql = "DROP VIEW IF EXISTS student_course_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW student_course_all_years_enrolment";
+            $sql = "DROP VIEW IF EXISTS student_course_all_years_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW student_programme_enrolment";
+            $sql = "DROP VIEW IF EXISTS student_programme_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -741,6 +818,7 @@ class target_mis {
 
         // Are we connected?
         if(!$this->is_connected()) {
+            $result[] = false;
             return $result;
         }
 
@@ -827,6 +905,10 @@ class target_mis {
     }
 
     public function enrol_users() {
+        if (!enrol_is_enabled('databaseextended')) {
+            die('enrol_databaseextended plugin is disabled, sync is disabled');
+        }
+
         $enrol = enrol_get_plugin('databaseextended');
 
         $tables = array('course_categories',
@@ -842,6 +924,64 @@ class target_mis {
         $enrol->start_timer();
         $enrol->speedy_sync($tables);
         $enrol->end_timer();
+    }
+
+    public function perform_sync() {
+        // What are plugin settings?
+        $targetcategory = get_config('local_ual_db_process', 'targetcategory');
+        $throttle = get_config('local_ual_db_process', 'targetcategory');
+
+        // Perform steps to complete full syncronisation...
+
+        // 1. Ensure tables we require are all present - and those that shouldn't be there have been removed...
+        $this->db_reset();
+
+        // User authentication:
+        // 2. Update current students
+        $this->update_students($throttle);
+        // 3. Create new students
+        $this->create_new_students($throttle);
+        // 4. Delete old students
+        $this->remove_redundant_students($throttle);
+
+        // Categories:
+        // 5. Update categories
+        $this->create_new_category($targetcategory);
+
+        // Courses:
+        // 6. Update current courses
+        $this->update_courses($throttle, $targetcategory);
+        // 7. Create new courses
+        $this->create_new_courses($throttle, $targetcategory);
+        // 8. Delete old courses
+        $this->remove_redundant_courses($throttle);
+
+        // Enrolments:
+        // 9. Update internal enrolment tables
+        $this->remove_enrolment_views();
+        // 10. Create the necessary views on to the data.
+        $this->create_enrolment_views();
+        // 11. Truncate the enrolments table...
+        $this->clear_enrolments();
+        // 12. Now students on to units...
+        $this->update_unit_enrolments();
+        // 13 ... courses...
+        $this->update_course_enrolments();
+        // 14 ... course (all years)...
+        $this->update_course_all_years_enrolments();
+        // 15 ... and programmes
+        $this->update_programme_enrolments();
+
+        // Perform actual authentication and enrolment?
+        $perform_auth = get_config('local_ual_db_process', 'userauth');
+        $perform_enrol = get_config('local_ual_db_process', 'userenrol');
+
+        if($perform_auth) {
+            $this->authenticate_users(false, false);
+        }
+        if($perform_enrol) {
+            $this->enrol_users(false, false);
+        }
     }
 }
 ?>
