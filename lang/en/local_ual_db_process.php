@@ -68,5 +68,7 @@ $string[ 'update_enrolments']               =   'Update internal tables';
 $string[ 'enrol_users' ]                    =   'Enrol';
 $string[ 'auth_header' ]                    =   'User Authentication';
 $string[ 'auth_users' ]                     =   'Authenticate';
+$string[ 'sync_header' ]                    =   '1 Step Sync';
+$string[ 'perform_sync' ]                   =   'Full sync';
 
 
