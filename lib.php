@@ -926,6 +926,21 @@ class target_mis {
         $enrol->end_timer();
     }
 
+    /**
+     * Makes sure that we get lines breaking properly on both web and command line echo statements.
+     *
+     * @return string either HTML line break tag or line end character
+     */
+    private function get_line_end() {
+        $sapi = php_sapi_name();
+
+        if ($sapi == 'cli') {
+            return "\n";
+        } else {
+            return '<br />';
+        }
+    }
+
     public function perform_sync() {
         // What are plugin settings?
         $targetcategory = get_config('local_ual_db_process', 'targetcategory');
@@ -934,57 +949,57 @@ class target_mis {
         // Perform steps to complete full syncronisation...
 
         // 1. Ensure tables we require are all present - and those that shouldn't be there have been removed...
-        echo '1. Resetting database back to known stage';
+        echo '1. Resetting database back to known stage'.$this->get_line_end();
         $this->db_reset();
 
         // User authentication:
         // 2. Update current students
-        echo '2. Update current students';
+        echo '2. Update current students'.$this->get_line_end();
         $this->update_students($throttle);
         // 3. Create new students
-        echo '3. Create new students';
+        echo '3. Create new students'.$this->get_line_end();
         $this->create_new_students($throttle);
         // 4. Delete old students
-        echo '4. Remove old students';
+        echo '4. Remove old students'.$this->get_line_end();
         $this->remove_redundant_students($throttle);
 
         // Categories:
         // 5. Update categories
-        echo '5. Create category';
+        echo '5. Create category'.$this->get_line_end();
         $this->create_new_category($targetcategory);
 
         // Courses:
         // 6. Update current courses
-        echo '6. Update current courses';
+        echo '6. Update current courses'.$this->get_line_end();
         $this->update_courses($throttle, $targetcategory);
         // 7. Create new courses
-        echo '7. Create new courses';
+        echo '7. Create new courses'.$this->get_line_end();
         $this->create_new_courses($throttle, $targetcategory);
         // 8. Delete old courses
-        echo '8. Create redundant courses';
+        echo '8. Create redundant courses'.$this->get_line_end();
         $this->remove_redundant_courses($throttle);
 
         // Enrolments:
         // 9. Update internal enrolment tables
-        echo '9. Remove enrolment views';
+        echo '9. Remove enrolment views'.$this->get_line_end();
         $this->remove_enrolment_views();
         // 10. Create the necessary views on to the data.
-        echo '10. Create enrolment views';
+        echo '10. Create enrolment views'.$this->get_line_end();
         $this->create_enrolment_views();
         // 11. Truncate the enrolments table...
-        echo '11. Clear current enrolments';
+        echo '11. Clear current enrolments'.$this->get_line_end();
         $this->clear_enrolments();
-        echo '12. Add student unit enrolments to enrolment table';
+        echo '12. Add student unit enrolments to enrolment table'.$this->get_line_end();
         // 12. Now students on to units...
         $this->update_unit_enrolments();
         // 13 ... courses...
-        echo '13. Add student course enrolments to enrolment table';
+        echo '13. Add student course enrolments to enrolment table'.$this->get_line_end();
         $this->update_course_enrolments();
         // 14 ... course (all years)...
-        echo '14. Add student course (all years) enrolments to enrolment table';
+        echo '14. Add student course (all years) enrolments to enrolment table'.$this->get_line_end();
         $this->update_course_all_years_enrolments();
         // 15 ... and programmes
-        echo '15. Add student programme enrolments to enrolment table';
+        echo '15. Add student programme enrolments to enrolment table'.$this->get_line_end();
         $this->update_programme_enrolments();
 
         // Perform actual authentication and enrolment?
@@ -992,11 +1007,11 @@ class target_mis {
         $perform_enrol = get_config('local_ual_db_process', 'userenrol');
 
         if($perform_auth) {
-            echo '16. Call auth plugin to authenticate users';
+            echo '16. Call auth plugin to authenticate users'.$this->get_line_end();
             $this->authenticate_users(false, false);
         }
         if($perform_enrol) {
-            echo '17. Call enrolment plugin to enrol users';
+            echo '17. Call enrolment plugin to enrol users'.$this->get_line_end();
             $this->enrol_users(false, false);
         }
     }
