@@ -34,6 +34,9 @@
 
 define('CLI_SCRIPT', true);
 
+$location = dirname(__FILE__);
+
+require(dirname(__FILE__).'/../../../config.php');
 require(dirname(__FILE__).'/../lib.php');
 
 $mis = new target_mis();
