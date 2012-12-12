@@ -61,6 +61,7 @@ $string[ 'category_header' ]                =   'Categories';
 $string[ 'update_categories' ]              =   'Update';
 $string[ 'courses_header' ]                 =   'Courses';
 $string[ 'create_new_courses' ]             =   'Create new';
+$string[ 'create_allyear_courses' ]         =   'Create \'All year\' course records';
 $string[ 'update_current_courses' ]         =   'Update current';
 $string[ 'delete_redundant_courses' ]       =   'Delete redundant';
 $string[ 'enrol_header' ]                   =   'Enrolments';
