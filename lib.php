@@ -809,7 +809,64 @@ class target_mis {
     }
 
     /**
-     * Currently we are only creating student enrolment views. Staff enrolment views will come from the Admin DB tool.
+     * 'Course (all years)' level courses are not included in the IDM data so we have to infer them. Note that they
+     * might have been added by the Admin DB tool so we need to check for the presence of a course before we poke anything
+     * into the 'courses' table.
+     *
+     * @return array
+     */
+    public function infer_course_all_years() {
+        $result = array();
+
+        // Are we connected?
+        if(!$this->is_connected()) {
+            $result[] = false;
+            return $result;
+        }
+
+        $sqlres = $this->mis->begin_transaction();
+        $result[] = $sqlres;
+
+        // There is going to be a lot of data to process so create views...
+        if($sqlres) {
+            // The following table can take over a minute to construct
+            $sql = "REPLACE INTO courses(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
+                    SELECT temp_table.all_years_id,
+                           temp_table.aos_code,
+                           temp_table.aos_period,
+                           temp_table.acad_period,
+                           temp_table.college,
+                           temp_table.description,
+                           temp_table.description,
+                           temp_table.school
+                    FROM
+                    (
+                      SELECT DISTINCT
+                        CONCAT(SUBSTR(c.COURSEID, 1, 7), SUBSTR(c.COURSEID, -5, 5)) AS all_years_id,
+                        c.AOS_CODE AS aos_code,
+                        SUBSTR(c.AOS_PERIOD, 1, 2) AS aos_period,
+                        c.ACAD_PERIOD AS acad_period,
+                        c.COLLEGE AS college,
+                        c.AOS_DESCRIPTION AS description,
+                        c.SCHOOL AS school
+                      FROM courses AS c
+                      WHERE c.COURSEID REGEXP '^[0-9]' AND LENGTH(c.COURSEID)=15
+                    ) AS temp_table";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sqlres = $this->mis->commit_transaction();
+            $result[] = $sqlres;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Currently we are only creating student enrolment views. Staff enrolments will come directly from the
+     * Admin DB tool via a Web Services interface (i.e. not through here).
      *
      * @return array
      */
@@ -951,6 +1008,9 @@ class target_mis {
         // 1. Ensure tables we require are all present - and those that shouldn't be there have been removed...
         echo '1. Resetting database back to known stage'.$this->get_line_end();
         $this->db_reset();
+
+        echo '2. Create \'Course (all years)\' level courses in \'courses\' table';
+        $this->infer_course_all_years();
 
         // User authentication:
         // 2. Update current students
