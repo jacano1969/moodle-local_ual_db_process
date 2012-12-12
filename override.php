@@ -48,6 +48,7 @@ class override_form extends moodleform {
 
         $mform->addElement('header', 'courseheader', get_string('courses_header', 'local_ual_db_process'));
         $coursebuttonarray=array();
+        $coursebuttonarray[] = &$mform->createElement('submit', 'create_allyear_courses', get_string('create_allyear_courses', 'local_ual_db_process'));
         $coursebuttonarray[] = &$mform->createElement('submit', 'create_new_courses', get_string('create_new_courses', 'local_ual_db_process'));
         $coursebuttonarray[] = &$mform->createElement('submit', 'update_current_courses', get_string('update_current_courses', 'local_ual_db_process'));
         $coursebuttonarray[] = &$mform->createElement('submit', 'delete_redundant_courses', get_string('delete_redundant_courses', 'local_ual_db_process'));
@@ -84,6 +85,7 @@ define('UAL_ACTION_UPDATE_STUDENTS', 8);
 define('UAL_ACTION_REMOVE_REDUNDANT_STUDENTS', 9);
 define('UAL_ACTION_AUTH_USERS', 10);
 define('UAL_ACTION_SYNC', 11);
+define('UAL_ACTION_ALLYEAR', 12);
 
 $action = UAL_ACTION_NONE;
 
@@ -121,6 +123,10 @@ if (isset($_POST['enrol_users'])) {
 
 if (isset($_POST['perform_sync'])) {
     $action = UAL_ACTION_SYNC;
+}
+
+if (isset($_POST['create_allyear_courses'])) {
+    $action = UAL_ACTION_ALLYEAR;
 }
 
 $PAGE->set_url('/local/ual_db_process/override.php');
@@ -172,6 +178,9 @@ if($action != UAL_ACTION_NONE) {
             case UAL_ACTION_NEW_COURSES:
                 $targetcategory = get_config('local_ual_db_process', 'targetcategory');
                 $db_result = $mis->create_new_courses($throttle, $targetcategory);
+                break;
+            case UAL_ACTION_ALLYEAR:
+                $db_result = $mis->infer_course_all_years();
                 break;
             case UAL_ACTION_UPDATE_COURSES:
                 $targetcategory = get_config('local_ual_db_process', 'targetcategory');
