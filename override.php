@@ -34,6 +34,11 @@ class override_form extends moodleform {
 
         $mform =& $this->_form; // Don't forget the underscore!
 
+        $mform->addElement('header', 'resetheader', get_string('reset_header', 'local_ual_db_process'));
+        $resetbuttonarray=array();
+        $resetbuttonarray[] = &$mform->createElement('submit', 'reset_db', get_string('reset_db', 'local_ual_db_process'));
+        $mform->addGroup($resetbuttonarray, 'resetbuttonar', '', array(' '), false);
+
         $mform->addElement('header', 'studentsheader', get_string('students_header', 'local_ual_db_process'));
         $studentsbuttonarray=array();
         $studentsbuttonarray[] = &$mform->createElement('submit', 'create_new_students', get_string('create_new_students', 'local_ual_db_process'));
@@ -86,15 +91,22 @@ define('UAL_ACTION_REMOVE_REDUNDANT_STUDENTS', 9);
 define('UAL_ACTION_AUTH_USERS', 10);
 define('UAL_ACTION_SYNC', 11);
 define('UAL_ACTION_ALLYEAR', 12);
+define('UAL_ACTION_RESET_DB', 13);
 
 $action = UAL_ACTION_NONE;
+
+if (isset($_POST['reset_db'])) {
+    $action = UAL_ACTION_RESET_DB;
+}
 
 if (isset($_POST['create_new_students'])) {
     $action = UAL_ACTION_NEW_STUDENTS;
 }
+
 if (isset($_POST['update_current_students'])) {
     $action = UAL_ACTION_UPDATE_STUDENTS;
 }
+
 if (isset($_POST['delete_redundant_students'])) {
     $action = UAL_ACTION_REMOVE_REDUNDANT_STUDENTS;
 }
@@ -102,9 +114,11 @@ if (isset($_POST['delete_redundant_students'])) {
 if (isset($_POST['create_new_courses'])) {
     $action = UAL_ACTION_NEW_COURSES;
 }
+
 if (isset($_POST['update_current_courses'])) {
     $action = UAL_ACTION_UPDATE_COURSES;
 }
+
 if (isset($_POST['delete_redundant_courses'])) {
     $action = UAL_ACTION_REMOVE_REDUNDANT_COURSES;
 }
@@ -162,6 +176,9 @@ if($action != UAL_ACTION_NONE) {
         $throttle = get_config('local_ual_db_process', 'throtte');
 
         switch($action) {
+            case UAL_ACTION_RESET_DB:
+                $db_result = $mis->db_reset();
+                break;
             case UAL_ACTION_UPDATE_CATEGORY:
                 $targetcategory = get_config('local_ual_db_process', 'targetcategory');
                 $db_result = $mis->create_new_category($targetcategory);
@@ -192,9 +209,9 @@ if($action != UAL_ACTION_NONE) {
             // Course enrolments
             case UAL_ACTION_UPDATE_ENROLMENT_TABLES:
                 // Remove enrolment views.
-                $db_result = $mis->remove_enrolment_views();
+                $db_result = $mis->remove_enrolment_tables();
                 // Create the necessary views on to the data.
-                $db_result = $mis->create_enrolment_views();
+                $db_result = $mis->create_enrolment_tables();
                 // Truncate the enrolments table...
                 $db_result = $mis->clear_enrolments();
                 // Now students on to units...
