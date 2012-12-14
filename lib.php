@@ -471,7 +471,7 @@ class target_mis {
                                 db_proc.COURSE_NAME AS TARGET_COURSE_NAME,
                                 db_proc.COURSE_SHORTNAME AS TARGET_COURSE_SHORTNAME
                                 FROM
-                                courses AS c
+                                COURSES AS c
                                 LEFT JOIN db_process_courses AS db_proc ON c.COURSEID=db_proc.COURSE_ID
                                 WHERE db_proc.COURSE_ID IS NULL";
 
@@ -540,7 +540,7 @@ class target_mis {
                                 c.FULL_DESCRIPTION AS SOURCE_FULL_NAME
                                 FROM
                                 db_process_courses AS db_proc
-                                INNER JOIN courses AS c ON db_proc.COURSE_ID=c.COURSEID
+                                INNER JOIN COURSES AS c ON db_proc.COURSE_ID=c.COURSEID
                                 WHERE c.COURSEID IS NOT NULL";
 
             if($throttle > 0) {
@@ -605,7 +605,7 @@ class target_mis {
                                 c.COURSEID AS SOURCE_COURSEID,
                                 FROM
                                 db_process_courses AS db_proc
-                                LEFT JOIN courses AS c ON db_proc.COURSE_ID=c.COURSEID
+                                LEFT JOIN COURSES AS c ON db_proc.COURSE_ID=c.COURSEID
                                 WHERE c.COURSEID IS NOT NULL";
 
             if($throttle > 0) {
@@ -839,7 +839,7 @@ class target_mis {
 
         if($sqlres) {
             // The following table can take over a minute to construct
-            $sql = "REPLACE INTO courses(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
+            $sql = "REPLACE INTO COURSES(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
                     SELECT temp_table.all_years_id,
                            temp_table.aos_code,
                            temp_table.aos_period,
@@ -858,7 +858,7 @@ class target_mis {
                         c.COLLEGE AS college,
                         c.AOS_DESCRIPTION AS description,
                         c.SCHOOL AS school
-                      FROM courses AS c
+                      FROM COURSES AS c
                       WHERE c.COURSEID REGEXP '^[0-9]' AND LENGTH(c.COURSEID)=15
                     ) AS temp_table";
 
