@@ -106,7 +106,7 @@ class target_mis {
     }
 
     /**
-     * Resets the DB back to a known state. Removes views, temporary tables, truncates tables where necessary (which
+     * Resets the DB back to a known state. Removes temporary tables, truncates tables where necessary (which
      * isn't always necessary).
      *
      * @return array
@@ -128,7 +128,16 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $this->remove_enrolment_views();
+            $this->remove_enrolment_tables();
+
+            // Prepare current tables if necessary. If 'id' is already there then this query will fail...
+            $sql = "ALTER TABLE `course_structure` ADD `id` INT NOT NULL AUTO_INCREMENT FIRST , ADD PRIMARY KEY ( `id` ) ";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE INDEX course_idx ON courses(COURSEID)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
 
             $sql = "CREATE TABLE IF NOT EXISTS db_process_category
                    ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
@@ -142,6 +151,7 @@ class target_mis {
                    ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
                      COURSE_ID varchar(254),
                      COURSE_SHORTNAME varchar(100),
+                     COURSE_NAME varchar(100),
                      COURSE_CATEGORY varchar(254) )";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -724,8 +734,8 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID)
-                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID FROM student_course_all_years_enrolment";
+            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_all_years_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -764,7 +774,7 @@ class target_mis {
         return $result;
     }
 
-    public function remove_enrolment_views() {
+    public function remove_enrolment_tables() {
         $result = array();
 
         if(!$this->is_connected()) {
@@ -781,22 +791,22 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW IF EXISTS student_unit_enrolment";
+            $sql = "DROP TABLE IF EXISTS student_unit_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW IF EXISTS student_course_enrolment";
+            $sql = "DROP TABLE IF EXISTS student_course_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW IF EXISTS student_course_all_years_enrolment";
+            $sql = "DROP TABLE IF EXISTS student_course_all_years_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "DROP VIEW IF EXISTS student_programme_enrolment";
+            $sql = "DROP TABLE IF EXISTS student_programme_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -827,7 +837,6 @@ class target_mis {
         $sqlres = $this->mis->begin_transaction();
         $result[] = $sqlres;
 
-        // There is going to be a lot of data to process so create views...
         if($sqlres) {
             // The following table can take over a minute to construct
             $sql = "REPLACE INTO courses(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
@@ -865,12 +874,12 @@ class target_mis {
 
 
     /**
-     * Currently we are only creating student enrolment views. Staff enrolments will come directly from the
+     * Currently we are only creating student enrolment tables. Staff enrolments will come directly from the
      * Admin DB tool via a Web Services interface (i.e. not through here).
      *
      * @return array
      */
-    public function create_enrolment_views($studentrole='student', $staffrole='staff') {
+    public function create_enrolment_tables($studentrole='student', $staffrole='staff') {
         $result = array();
 
         // Are we connected?
@@ -882,23 +891,68 @@ class target_mis {
         $sqlres = $this->mis->begin_transaction();
         $result[] = $sqlres;
 
-        // There is going to be a lot of data to process so create views...
         if($sqlres) {
-            // The following table can take over a minute to construct
-            $sql = "CREATE TABLE course_relationship AS
+            // Create, and partially fill, a table demonstrating the parent/child relationship...
+            $sql = "CREATE TABLE temp_table AS
                         SELECT
-                            CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD) AS COURSE_ID,
-                            c1.FULL_DESCRIPTION AS COURSE_NAME,
-                            CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD) AS PARENTID,
-                            c2.FULL_DESCRIPTION AS PARENT_NAME
-                        FROM course_structure AS cs
-                        LEFT JOIN courses AS c1 ON CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD)=c1.COURSEID
-                        LEFT JOIN courses AS c2 ON CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD)=c2.COURSEID";
+                            CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD) AS COURSEID,
+                            CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD) AS PARENTID
+                        FROM course_structure AS cs";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE VIEW student_unit_enrolment AS
+            // Add an index to both the COURSEID and PARENTID columns...
+            $sql = "CREATE INDEX COURSEID ON temp_table(COURSEID)";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE INDEX PARENTID ON temp_table(PARENTID)";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Populate the 'COURSE_NAME' and 'PARENT_NAME' columns...
+            $sql = "CREATE TABLE course_relationship
+                        SELECT
+                            tt.COURSEID AS COURSEID,
+                            c1.FULL_DESCRIPTION AS COURSE_NAME,
+                            tt.PARENTID AS PARENTID,
+                            c2.FULL_DESCRIPTION AS PARENT_NAME
+                        FROM temp_table AS tt
+                        LEFT JOIN courses AS c1 ON tt.COURSEID=c1.COURSEID
+                        LEFT JOIN courses AS c2 ON tt.PARENTID=c2.COURSEID";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Add an index to both the COURSEID and PARENTID columns on new table...
+            $sql = "CREATE INDEX COURSEID ON course_relationship(COURSEID)";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE INDEX PARENTID ON course_relationship(PARENTID)";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Remove the temporary table...
+            $sql = "DROP TABLE temp_table";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Now replace any NULLs in the relationship table with something sensible - names are to be used for group names...
+            $sql = "UPDATE course_relationship SET COURSE_NAME = COURSEID where COURSE_NAME IS NULL";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "UPDATE course_relationship SET PARENT_NAME = PARENTID where PARENT_NAME IS NULL";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+
+            $sql = "CREATE TABLE student_unit_enrolment AS
                         SELECT
 	                        STUDENTID AS USER_ID,
 	                        COURSEID AS COURSE_ID,
@@ -909,41 +963,59 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE VIEW student_course_enrolment AS
+            $sql = "CREATE INDEX COURSE_ID ON student_unit_enrolment(COURSE_ID)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE INDEX USER_ID ON student_unit_enrolment(USER_ID)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE TABLE student_course_enrolment AS
                         SELECT
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
 	                        '{$studentrole}' AS ROLE_NAME,
-	                        CONCAT(cr.PARENTID,'-',cr.COURSE_ID) AS GROUP_ID,
+	                        CONCAT(cr.PARENTID,'-',cr.COURSEID) AS GROUP_ID,
 	                        cr.COURSE_NAME AS GROUP_NAME
                         FROM student_unit_enrolment AS unit_enrol
-                        INNER JOIN course_relationship AS cr ON unit_enrol.COURSE_ID=cr.COURSE_ID
+                        INNER JOIN course_relationship AS cr ON unit_enrol.COURSE_ID=cr.COURSEID
 	                    WHERE cr.PARENTID REGEXP '^[0-9]'";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            $sql = "CREATE INDEX USER_ID ON student_course_enrolment(USER_ID)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE INDEX COURSE_ID ON student_course_enrolment(COURSE_ID)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // I'm not sure if we are going to have 'Course (all years)' full description so I'm going to leave it out for now...
-            $sql = "CREATE VIEW student_course_all_years_enrolment AS
+            $sql = "CREATE TABLE student_course_all_years_enrolment AS
                         SELECT DISTINCT
 	                    course_enrol.USER_ID AS USER_ID,
                         CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
-	                    CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5),'-',course_enrol.COURSE_ID) AS GROUP_ID
-                        FROM student_course_enrolment AS course_enrol";
+	                    CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5),'-',course_enrol.COURSE_ID) AS GROUP_ID,
+	                    course_enrol.GROUP_NAME AS GROUP_NAME
+	                    FROM student_course_enrolment AS course_enrol";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE VIEW student_programme_enrolment AS
+            $sql = "CREATE TABLE student_programme_enrolment AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
-                        CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSE_ID, 1, 7), SUBSTR(cr.COURSE_ID, -5, 5))) AS GROUP_ID,
-                        cr.COURSE_NAME AS GROUP_NAME
+                        CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS GROUP_ID,
+                        c.FULL_DESCRIPTION AS GROUP_NAME
                         FROM course_relationship AS cr
-                        INNER JOIN student_course_enrolment AS e ON cr.COURSE_ID=e.COURSE_ID
+                        INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
+                        INNER JOIN courses AS c ON CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))=c.COURSEID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
 
             $sqlres = $this->mis->execute($sql);
@@ -1041,11 +1113,11 @@ class target_mis {
 
         // Enrolments:
         // 9. Update internal enrolment tables
-        echo '9. Remove enrolment views'.$this->get_line_end();
-        $this->remove_enrolment_views();
-        // 10. Create the necessary views on to the data.
-        echo '10. Create enrolment views'.$this->get_line_end();
-        $this->create_enrolment_views();
+        echo '9. Remove enrolment tables'.$this->get_line_end();
+        $this->remove_enrolment_tables();
+        // 10. Create the necessary tables on to the data.
+        echo '10. Create enrolment tables'.$this->get_line_end();
+        $this->create_enrolment_tables();
         // 11. Truncate the enrolments table...
         echo '11. Clear current enrolments'.$this->get_line_end();
         $this->clear_enrolments();
