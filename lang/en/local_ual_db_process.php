@@ -71,5 +71,6 @@ $string[ 'auth_header' ]                    =   'User Authentication';
 $string[ 'auth_users' ]                     =   'Authenticate';
 $string[ 'sync_header' ]                    =   '1 Step Sync';
 $string[ 'perform_sync' ]                   =   'Full sync';
-
+$string[ 'reset_header' ]                   =   'Database Reset';
+$string[ 'reset_db' ]                       =   'Reset DB';
 
