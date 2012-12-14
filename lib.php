@@ -323,7 +323,7 @@ class target_mis {
                                                         AND (db_proc.FIRSTNAME IS NOT u.FIRSTNAME OR
                                                              db_proc.LASTNAME IS NOT u.LASTNAME OR
                                                              db_proc.EMAIL IS NOT u.EMAIL OR
-                                                             db_proc.INSTITUTION IS NOT u.COLLEGE) COLLATE utf8_unicode_ci
+                                                             db_proc.INSTITUTION IS NOT u.COLLEGE)
                                 WHERE u.STUDENTID IS NOT NULL";
 
             if($throttle > 0) {
