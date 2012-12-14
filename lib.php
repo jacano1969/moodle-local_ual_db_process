@@ -493,7 +493,7 @@ class target_mis {
                         SELECT SOURCE_COURSEID,SOURCE_FULL_NAME,SOURCE_COURSEID,'{$category}'
                         FROM temp_table
                         LEFT JOIN db_process_courses AS db_proc
-                        ON temp_table.SOURCE_COURSEID = db_proc.COURSE_ID
+                        ON temp_table.SOURCE_COURSEID = db_proc.COURSE_ID COLLATE utf8_unicode_ci
                         WHERE temp_table.TARGET_COURSE_ID IS NULL";
 
                 $sqlres = $this->mis->execute($sql);
