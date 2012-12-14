@@ -1035,10 +1035,9 @@ class target_mis {
 	                    cr.PARENTID AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
                         CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS GROUP_ID,
-                        c.FULL_DESCRIPTION AS GROUP_NAME
+                        NULL AS GROUP_NAME
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
-                        INNER JOIN COURSES AS c ON CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))=c.COURSEID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
 
             $sqlres = $this->mis->execute($sql);
