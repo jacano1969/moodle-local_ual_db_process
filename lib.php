@@ -131,7 +131,7 @@ class target_mis {
             $this->remove_enrolment_tables();
 
             // Prepare current tables if necessary. If 'id' is already there then this query will fail...
-            $sql = "ALTER TABLE `course_structure` ADD `id` INT NOT NULL AUTO_INCREMENT FIRST , ADD PRIMARY KEY ( `id` ) ";
+            $sql = "ALTER TABLE `COURSE_STRUCTURE` ADD `id` INT NOT NULL AUTO_INCREMENT FIRST , ADD PRIMARY KEY ( `id` ) ";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -897,7 +897,7 @@ class target_mis {
                         SELECT
                             CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD) AS COURSEID,
                             CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD) AS PARENTID
-                        FROM course_structure AS cs";
+                        FROM COURSE_STRUCTURE AS cs";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -921,8 +921,8 @@ class target_mis {
                             tt.PARENTID AS PARENTID,
                             c2.FULL_DESCRIPTION AS PARENT_NAME
                         FROM temp_table AS tt
-                        LEFT JOIN courses AS c1 ON tt.COURSEID=c1.COURSEID
-                        LEFT JOIN courses AS c2 ON tt.PARENTID=c2.COURSEID";
+                        LEFT JOIN COURSES AS c1 ON tt.COURSEID=c1.COURSEID
+                        LEFT JOIN COURSES AS c2 ON tt.PARENTID=c2.COURSEID";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -957,7 +957,7 @@ class target_mis {
 	                        STUDENTID AS USER_ID,
 	                        COURSEID AS COURSE_ID,
 	                        '{$studentrole}' AS ROLE_NAME
-                        FROM enrolments
+                        FROM ENROLMENTS
 	                    WHERE COURSEID NOT REGEXP '^[0-9]'";
 
             $sqlres = $this->mis->execute($sql);
@@ -1015,7 +1015,7 @@ class target_mis {
                         c.FULL_DESCRIPTION AS GROUP_NAME
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
-                        INNER JOIN courses AS c ON CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))=c.COURSEID
+                        INNER JOIN COURSES AS c ON CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))=c.COURSEID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
 
             $sqlres = $this->mis->execute($sql);
