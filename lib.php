@@ -926,6 +926,12 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Add a primary key
+            $sql = "ALTER TABLE course_relationship ADD id INT(11)
+                    NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // Add an index to both the COURSEID and PARENTID columns on new table...
             $sql = "CREATE INDEX COURSEID ON course_relationship(COURSEID)";
 
@@ -951,7 +957,6 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-
             $sql = "CREATE TABLE student_unit_enrolment AS
                         SELECT
 	                        STUDENTID AS USER_ID,
@@ -960,6 +965,12 @@ class target_mis {
                         FROM ENROLMENTS
 	                    WHERE COURSEID NOT REGEXP '^[0-9]'";
 
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Add a primary key
+            $sql = "ALTER TABLE student_unit_enrolment ADD id INT(11)
+                    NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -985,6 +996,12 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Add a primary key
+            $sql = "ALTER TABLE student_course_enrolment ADD id INT(11)
+                    NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             $sql = "CREATE INDEX USER_ID ON student_course_enrolment(USER_ID)";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -1006,6 +1023,12 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Add a primary key
+            $sql = "ALTER TABLE student_course_all_years_enrolment ADD id INT(11)
+                    NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             $sql = "CREATE TABLE student_programme_enrolment AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
@@ -1018,6 +1041,12 @@ class target_mis {
                         INNER JOIN COURSES AS c ON CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))=c.COURSEID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
 
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Add a primary key
+            $sql = "ALTER TABLE student_programme_enrolment ADD id INT(11)
+                    NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
