@@ -472,7 +472,7 @@ class target_mis {
                                 db_proc.COURSE_SHORTNAME AS TARGET_COURSE_SHORTNAME
                                 FROM
                                 COURSES AS c
-                                LEFT JOIN db_process_courses AS db_proc ON c.COURSEID=db_proc.COURSE_ID
+                                LEFT JOIN db_process_courses AS db_proc ON c.COURSEID=db_proc.COURSE_ID COLLATE utf8_unicode_ci
                                 WHERE db_proc.COURSE_ID IS NULL";
 
             if($throttle > 0) {
