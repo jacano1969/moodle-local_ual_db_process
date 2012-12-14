@@ -247,7 +247,7 @@ class target_mis {
                                 db_proc.INSTITUTION AS TARGET_COLLEGE
                                 FROM
                                 USERS AS u
-                                LEFT JOIN db_process_users AS db_proc ON LOWER(u.STUDENTID)=db_proc.USERNAME
+                                LEFT JOIN db_process_users AS db_proc ON LOWER(u.STUDENTID)=db_proc.USERNAME COLLATE utf8_unicode_ci
                                 WHERE db_proc.USERNAME IS NULL AND u.STUDENTID IS NOT NULL";
 
             if($throttle > 0) {
@@ -323,7 +323,7 @@ class target_mis {
                                                         AND (db_proc.FIRSTNAME IS NOT u.FIRSTNAME OR
                                                              db_proc.LASTNAME IS NOT u.LASTNAME OR
                                                              db_proc.EMAIL IS NOT u.EMAIL OR
-                                                             db_proc.INSTITUTION IS NOT u.COLLEGE)
+                                                             db_proc.INSTITUTION IS NOT u.COLLEGE) COLLATE utf8_unicode_ci
                                 WHERE u.STUDENTID IS NOT NULL";
 
             if($throttle > 0) {
@@ -389,7 +389,7 @@ class target_mis {
                                 LOWER(u.STUDENTID) AS SOURCE_STUDENTID
                                 FROM
                                 db_process_users AS db_proc
-                                LEFT JOIN USERS AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
+                                LEFT JOIN USERS AS u ON db_proc.USERNAME=LOWER(u.STUDENTID) COLLATE utf8_unicode_ci
                                 WHERE u.STUDENTID IS NULL";
 
             if($throttle > 0) {
