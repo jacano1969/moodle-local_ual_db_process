@@ -135,9 +135,11 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE INDEX course_idx ON courses(COURSEID)";
+            $sql = "CREATE INDEX COURSEID ON courses(COURSEID)";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
+
+            // TODO Check that usernames are all lowercase
 
             $sql = "CREATE TABLE IF NOT EXISTS db_process_category
                    ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
@@ -235,7 +237,7 @@ class target_mis {
             $result[] = $sqlres;
 
             $initial_select = "SELECT
-                                LOWER(u.STUDENTID) AS SOURCE_STUDENTID,
+                                u.STUDENTID AS SOURCE_STUDENTID,
                                 u.FIRSTNAME AS SOURCE_FIRSTNAME,
                                 u.LASTNAME AS SOURCE_LASTNAME,
                                 u.EMAIL AS SOURCE_EMAIL,
@@ -247,7 +249,7 @@ class target_mis {
                                 db_proc.INSTITUTION AS TARGET_COLLEGE
                                 FROM
                                 USERS AS u
-                                LEFT JOIN db_process_users AS db_proc ON LOWER(u.STUDENTID)=db_proc.USERNAME COLLATE utf8_unicode_ci
+                                LEFT JOIN db_process_users AS db_proc ON u.STUDENTID=db_proc.USERNAME COLLATE utf8_unicode_ci
                                 WHERE db_proc.USERNAME IS NULL AND u.STUDENTID IS NOT NULL";
 
             if($throttle > 0) {
@@ -312,14 +314,14 @@ class target_mis {
                                 db_proc.LASTNAME AS TARGET_LASTNAME,
                                 db_proc.EMAIL AS TARGET_EMAIL,
                                 db_proc.INSTITUTION AS TARGET_COLLEGE,
-                                LOWER(u.STUDENTID) AS SOURCE_STUDENTID,
+                                u.STUDENTID AS SOURCE_STUDENTID,
                                 u.FIRSTNAME AS SOURCE_FIRSTNAME,
                                 u.LASTNAME AS SOURCE_LASTNAME,
                                 u.EMAIL AS SOURCE_EMAIL,
                                 u.COLLEGE AS SOURCE_COLLEGE
                                 FROM
                                 db_process_users AS db_proc
-                                INNER JOIN USERS AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
+                                INNER JOIN USERS AS u ON db_proc.USERNAME=u.STUDENTID
                                                         AND (db_proc.FIRSTNAME IS NOT u.FIRSTNAME OR
                                                              db_proc.LASTNAME IS NOT u.LASTNAME OR
                                                              db_proc.EMAIL IS NOT u.EMAIL OR
@@ -386,10 +388,10 @@ class target_mis {
             // Perform a SELECT DISTINCT as we are ignoring colleges.
             $initial_select = "SELECT DISTINCT
                                 db_proc.USERNAME AS TARGET_STUDENTID,
-                                LOWER(u.STUDENTID) AS SOURCE_STUDENTID
+                                u.STUDENTID AS SOURCE_STUDENTID
                                 FROM
                                 db_process_users AS db_proc
-                                LEFT JOIN USERS AS u ON db_proc.USERNAME=LOWER(u.STUDENTID) COLLATE utf8_unicode_ci
+                                LEFT JOIN USERS AS u ON db_proc.USERNAME=u.STUDENTID COLLATE utf8_unicode_ci
                                 WHERE u.STUDENTID IS NULL";
 
             if($throttle > 0) {
@@ -683,7 +685,7 @@ class target_mis {
 
         if($sqlres) {
             $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME)
-                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME FROM student_unit_enrolment";
+                    SELECT USER_ID,COURSE_ID,ROLE_NAME FROM student_unit_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -709,7 +711,7 @@ class target_mis {
 
         if($sqlres) {
             $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
-                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_enrolment";
+                    SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -735,7 +737,7 @@ class target_mis {
 
         if($sqlres) {
             $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
-                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_all_years_enrolment";
+                    SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_all_years_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -762,7 +764,7 @@ class target_mis {
         if($sqlres) {
             // Now copy over the data for student programmes enrolment...
             $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
-                    SELECT LOWER(USER_ID),COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_programme_enrolment";
+                    SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_programme_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
