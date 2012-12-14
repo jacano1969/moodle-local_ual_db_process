@@ -246,7 +246,7 @@ class target_mis {
                                 db_proc.EMAIL AS TARGET_EMAIL,
                                 db_proc.INSTITUTION AS TARGET_COLLEGE
                                 FROM
-                                users AS u
+                                USERS AS u
                                 LEFT JOIN db_process_users AS db_proc ON LOWER(u.STUDENTID)=db_proc.USERNAME
                                 WHERE db_proc.USERNAME IS NULL AND u.STUDENTID IS NOT NULL";
 
@@ -319,7 +319,7 @@ class target_mis {
                                 u.COLLEGE AS SOURCE_COLLEGE
                                 FROM
                                 db_process_users AS db_proc
-                                INNER JOIN users AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
+                                INNER JOIN USERS AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
                                                         AND (db_proc.FIRSTNAME IS NOT u.FIRSTNAME OR
                                                              db_proc.LASTNAME IS NOT u.LASTNAME OR
                                                              db_proc.EMAIL IS NOT u.EMAIL OR
@@ -389,7 +389,7 @@ class target_mis {
                                 LOWER(u.STUDENTID) AS SOURCE_STUDENTID
                                 FROM
                                 db_process_users AS db_proc
-                                LEFT JOIN users AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
+                                LEFT JOIN USERS AS u ON db_proc.USERNAME=LOWER(u.STUDENTID)
                                 WHERE u.STUDENTID IS NULL";
 
             if($throttle > 0) {
@@ -1069,7 +1069,7 @@ class target_mis {
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
-            
+
             // For any GROUP_NAMEs that are still NULL...
             $sql = "UPDATE student_programme_enrolment SET GROUP_NAME = CHILD_COURSE where GROUP_NAME IS NULL";
             $sqlres = $this->mis->execute($sql);
