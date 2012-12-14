@@ -268,7 +268,7 @@ class target_mis {
                         SELECT SOURCE_STUDENTID,SOURCE_FIRSTNAME,SOURCE_LASTNAME,SOURCE_EMAIL,SOURCE_COLLEGE,SOURCE_STUDENTID
                         FROM temp_table
                         LEFT JOIN db_process_users AS db_proc
-                        ON temp_table.SOURCE_STUDENTID = db_proc.USERNAME
+                        ON temp_table.SOURCE_STUDENTID = db_proc.USERNAME COLLATE utf8_unicode_ci
                         WHERE temp_table.TARGET_STUDENTID IS NULL";
 
                 $sqlres = $this->mis->execute($sql);
