@@ -1035,6 +1035,7 @@ class target_mis {
 	                    cr.PARENTID AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
                         CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS GROUP_ID,
+                        cr.COURSEID AS CHILD_COURSE,
                         NULL AS GROUP_NAME
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
@@ -1046,6 +1047,31 @@ class target_mis {
             // Add a primary key
             $sql = "ALTER TABLE student_programme_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE INDEX CHILD_COURSE ON student_programme_enrolment(CHILD_COURSE)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Change the GROUP_NAME column to accomodate the course description...
+            $sql = "ALTER TABLE `dev_ualmis`.`student_programme_enrolment` CHANGE
+                    COLUMN `GROUP_NAME` `GROUP_NAME` VARCHAR(254) NULL DEFAULT NULL";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Update the group names...
+            $sql = "UPDATE student_programme_enrolment spe
+                    INNER JOIN COURSES AS c
+                    ON spe.CHILD_COURSE = c.COURSEID
+                    SET spe.GROUP_NAME = c.FULL_DESCRIPTION
+                    WHERE spe.GROUP_NAME IS NULL;";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+            
+            // For any GROUP_NAMEs that are still NULL...
+            $sql = "UPDATE student_programme_enrolment SET GROUP_NAME = CHILD_COURSE where GROUP_NAME IS NULL";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
