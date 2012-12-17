@@ -123,6 +123,10 @@ if (isset($_POST['create_allyear_courses'])) {
     $action = UAL_ACTION_ALLYEAR;
 }
 
+if (isset($_POST['update_categories'])) {
+    $action = UAL_ACTION_UPDATE_CATEGORY;
+}
+
 $PAGE->set_url('/local/ual_db_process/override.php');
 $context = get_context_instance(CONTEXT_SYSTEM);
 $PAGE->set_context($context);
