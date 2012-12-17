@@ -131,7 +131,7 @@ class target_mis {
             $this->remove_enrolment_tables();
 
             // Prepare current tables if necessary. If 'id' is already there then this query will fail...
-            $sql = "ALTER TABLE `COURSE_STRUCTURE` ADD `id` INT NOT NULL AUTO_INCREMENT FIRST , ADD PRIMARY KEY ( `id` ) ";
+            $sql = "ALTER TABLE 'COURSE_STRUCTURE' ADD 'id' INT NOT NULL AUTO_INCREMENT FIRST , ADD PRIMARY KEY ( 'id' ) ";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -231,61 +231,48 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            // Drop the temporary table if it already exists
-            $sql = "DROP TABLE IF EXISTS temp_table";
+            // Truncate db_process_courses
+            $sql = "TRUNCATE TABLE db_process_users";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $initial_select = "SELECT
-                                u.STUDENTID AS SOURCE_STUDENTID,
-                                u.FIRSTNAME AS SOURCE_FIRSTNAME,
-                                u.LASTNAME AS SOURCE_LASTNAME,
-                                u.EMAIL AS SOURCE_EMAIL,
-                                u.COLLEGE AS SOURCE_COLLEGE,
-                                db_proc.USERNAME AS TARGET_STUDENTID,
-                                db_proc.FIRSTNAME AS TARGET_FIRSTNAME,
-                                db_proc.LASTNAME AS TARGET_LASTNAME,
-                                db_proc.EMAIL AS TARGET_EMAIL,
-                                db_proc.INSTITUTION AS TARGET_COLLEGE
-                                FROM
-                                USERS AS u
-                                LEFT JOIN db_process_users AS db_proc ON u.STUDENTID=db_proc.USERNAME COLLATE utf8_unicode_ci
-                                WHERE db_proc.USERNAME IS NULL AND u.STUDENTID IS NOT NULL";
+            // Insert users where they have a STUDENTID
+            $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
+                    SELECT
+                      u.STUDENTID AS SOURCE_STUDENTID,
+                      u.FIRSTNAME AS SOURCE_FIRSTNAME,
+                      u.LASTNAME AS SOURCE_LASTNAME,
+                      u.EMAIL AS SOURCE_EMAIL,
+                      u.COLLEGE AS SOURCE_COLLEGE,
+                      u.STUDENTID AS IDNUMBER
+                    FROM USERS AS u
+                    WHERE u.STUDENTID IS NOT NULL";
 
             if($throttle > 0) {
-                $initial_select .= " LIMIT 0,".$throttle;
+                $sql .= " LIMIT 0,".$throttle;
             }
-
-            // Perform left join on data that should be the same. Then we can pick out rows that aren't.
-            $sql = "CREATE TABLE temp_table AS
-                    (
-                      {$initial_select}
-                    )";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            if($sqlres) {
-                // Truncate db_process_courses
-                $sql = "TRUNCATE TABLE db_process_users";
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
+            // Insert users where they have a USERNAME but no STUDENTID
+            $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
+                    SELECT
+                      u.USERNAME AS SOURCE_STUDENTID,
+                      u.FIRSTNAME AS SOURCE_FIRSTNAME,
+                      u.LASTNAME AS SOURCE_LASTNAME,
+                      u.EMAIL AS SOURCE_EMAIL,
+                      u.COLLEGE AS SOURCE_COLLEGE,
+                      u.USERNAME AS IDNUMBER
+                    FROM USERS AS u
+                    WHERE u.STUDENTID IS NULL";
 
-                $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
-                        SELECT SOURCE_STUDENTID,SOURCE_FIRSTNAME,SOURCE_LASTNAME,SOURCE_EMAIL,SOURCE_COLLEGE,SOURCE_STUDENTID
-                        FROM temp_table
-                        LEFT JOIN db_process_users AS db_proc
-                        ON temp_table.SOURCE_STUDENTID = db_proc.USERNAME COLLATE utf8_unicode_ci
-                        WHERE temp_table.TARGET_STUDENTID IS NULL";
-
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-
-                // Drop the temp table as a matter of course...
-                $sql = "DROP TABLE temp_table";
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
+            if($throttle > 0) {
+                $sql .= " LIMIT 0,".$throttle;
             }
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
 
             $sqlres = $this->mis->commit_transaction();
             $result[] = $sqlres;
@@ -313,58 +300,26 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            // Drop temp table as a matter of course...
-            $sql = "DROP TABLE IF EXISTS temp_table";
+
+            // Truncate db_process_courses
+            $sql = "TRUNCATE TABLE db_process_courses";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            // Perform a SELECT DISTINCT as we are ignoring colleges...
-            $initial_select = "SELECT DISTINCT
-                                c.COURSEID AS SOURCE_COURSEID,
-                                c.AOS_DESCRIPTION AS SOURCE_DESCRIPTION,
-                                c.FULL_DESCRIPTION AS SOURCE_FULL_NAME,
-                                db_proc.COURSE_ID AS TARGET_COURSE_ID,
-                                db_proc.COURSE_NAME AS TARGET_COURSE_NAME,
-                                db_proc.COURSE_SHORTNAME AS TARGET_COURSE_SHORTNAME
-                                FROM
-                                COURSES AS c
-                                LEFT JOIN db_process_courses AS db_proc ON c.COURSEID=db_proc.COURSE_ID COLLATE utf8_unicode_ci
-                                WHERE db_proc.COURSE_ID IS NULL";
+            $sql = "INSERT INTO db_process_courses(COURSE_ID,COURSE_NAME,COURSE_SHORTNAME,COURSE_CATEGORY)
+                    SELECT
+                      c.COURSEID AS SOURCE_COURSEID,
+                      c.AOS_DESCRIPTION AS SOURCE_DESCRIPTION,
+                      c.FULL_DESCRIPTION AS SOURCE_FULL_NAME,
+                      '{$category}' AS CATEGORY
+                    FROM COURSES AS c";
 
             if($throttle > 0) {
-                $initial_select .= " LIMIT 0,".$throttle;
+                $sql .= " LIMIT 0,".$throttle;
             }
-
-            // Perform left join on data that should be the same. Then we can pick out rows that aren't.
-            $sql = "CREATE TABLE temp_table AS
-                    (
-                      {$initial_select}
-                    )";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
-
-            if($sqlres) {
-                // Truncate db_process_courses
-                $sql = "TRUNCATE TABLE db_process_courses";
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-
-                $sql = "INSERT INTO db_process_courses(COURSE_ID,COURSE_NAME,COURSE_SHORTNAME,COURSE_CATEGORY)
-                        SELECT SOURCE_COURSEID,SOURCE_FULL_NAME,SOURCE_COURSEID,'{$category}'
-                        FROM temp_table
-                        LEFT JOIN db_process_courses AS db_proc
-                        ON temp_table.SOURCE_COURSEID = db_proc.COURSE_ID COLLATE utf8_unicode_ci
-                        WHERE temp_table.TARGET_COURSE_ID IS NULL";
-
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-
-                // Drop the temp table as a matter of course...
-                $sql = "DROP TABLE temp_table";
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-            }
 
             $sqlres = $this->mis->commit_transaction();
             $result[] = $sqlres;
@@ -565,32 +520,40 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            // The following table can take over a minute to construct
-            $sql = "REPLACE INTO COURSES(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
-                    SELECT temp_table.all_years_id,
-                           temp_table.aos_code,
-                           temp_table.aos_period,
-                           temp_table.acad_period,
-                           temp_table.college,
-                           temp_table.description,
-                           temp_table.description,
-                           temp_table.school
-                    FROM
-                    (
-                      SELECT DISTINCT
-                        CONCAT(SUBSTR(c.COURSEID, 1, 7), SUBSTR(c.COURSEID, -5, 5)) AS all_years_id,
-                        c.AOS_CODE AS aos_code,
-                        SUBSTR(c.AOS_PERIOD, 1, 2) AS aos_period,
-                        c.ACAD_PERIOD AS acad_period,
-                        c.COLLEGE AS college,
-                        c.AOS_DESCRIPTION AS description,
-                        c.SCHOOL AS school
-                      FROM COURSES AS c
-                      WHERE c.COURSEID REGEXP '^[0-9]' AND LENGTH(c.COURSEID)=15
-                    ) AS temp_table";
-
+            // Remove any entries that have COURSEIDs 12 chars long to prevent creating duplicates (note that REPLACE INTO
+            // and INSERT IGNORE INTO won't work because the RECORD_IDs are unique
+            $sql = "DELETE FROM COURSES WHERE LENGTH(COURSEID)=12";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
+
+            if($sqlres) {
+                // The following table can take over a minute to construct
+                $sql = "INSERT INTO COURSES(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
+                        SELECT temp_table.all_years_id,
+                               temp_table.aos_code,
+                               temp_table.aos_period,
+                               temp_table.acad_period,
+                               temp_table.college,
+                               temp_table.description,
+                               temp_table.description,
+                               temp_table.school
+                        FROM
+                        (
+                          SELECT DISTINCT
+                            CONCAT(SUBSTR(c.COURSEID, 1, 7), SUBSTR(c.COURSEID, -5, 5)) AS all_years_id,
+                            c.AOS_CODE AS aos_code,
+                            SUBSTR(c.AOS_PERIOD, 1, 2) AS aos_period,
+                            c.ACAD_PERIOD AS acad_period,
+                            c.COLLEGE AS college,
+                            c.AOS_DESCRIPTION AS description,
+                            c.SCHOOL AS school
+                          FROM COURSES AS c
+                          WHERE c.COURSEID REGEXP '^[0-9]' AND LENGTH(c.COURSEID)=15
+                        ) AS temp_table";
+
+                $sqlres = $this->mis->execute($sql);
+                $result[] = $sqlres;
+            }
 
             $sqlres = $this->mis->commit_transaction();
             $result[] = $sqlres;
@@ -598,7 +561,6 @@ class target_mis {
 
         return $result;
     }
-
 
     /**
      * Currently we are only creating student enrolment tables. Staff enrolments will come directly from the
@@ -782,8 +744,8 @@ class target_mis {
             $result[] = $sqlres;
 
             // Change the GROUP_NAME column to accomodate the course description...
-            $sql = "ALTER TABLE `dev_ualmis`.`student_programme_enrolment` CHANGE
-                    COLUMN `GROUP_NAME` `GROUP_NAME` VARCHAR(254) NULL DEFAULT NULL";
+            $sql = "ALTER TABLE 'dev_ualmis'.'student_programme_enrolment' CHANGE
+                    COLUMN 'GROUP_NAME' 'GROUP_NAME' VARCHAR(254) NULL DEFAULT NULL";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
