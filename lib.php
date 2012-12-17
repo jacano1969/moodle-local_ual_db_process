@@ -218,7 +218,7 @@ class target_mis {
         return $result;
     }
 
-    public function create_new_students($throttle = 0) {
+    public function create_students($throttle = 0) {
         $result = array();
 
         // Are we connected?
@@ -266,6 +266,11 @@ class target_mis {
             $result[] = $sqlres;
 
             if($sqlres) {
+                // Truncate db_process_courses
+                $sql = "TRUNCATE TABLE db_process_users";
+                $sqlres = $this->mis->execute($sql);
+                $result[] = $sqlres;
+
                 $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
                         SELECT SOURCE_STUDENTID,SOURCE_FIRSTNAME,SOURCE_LASTNAME,SOURCE_EMAIL,SOURCE_COLLEGE,SOURCE_STUDENTID
                         FROM temp_table
@@ -289,164 +294,13 @@ class target_mis {
         return $result;
     }
 
-    public function update_students($throttle = 0) {
-        $result = array();
-
-        // Are we connected?
-        if(!$this->is_connected()) {
-            $result[] = false;
-            return $result;
-        }
-
-        $sqlres = $this->mis->begin_transaction();
-        $result[] = $sqlres;
-
-        if($sqlres) {
-            // Drop the temporary table if it already exists
-            $sql = "DROP TABLE IF EXISTS temp_table";
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Perform a SELECT DISTINCT as we are ignoring colleges.
-            $initial_select = "SELECT DISTINCT
-                                db_proc.USERNAME AS TARGET_STUDENTID,
-                                db_proc.FIRSTNAME AS TARGET_FIRSTNAME,
-                                db_proc.LASTNAME AS TARGET_LASTNAME,
-                                db_proc.EMAIL AS TARGET_EMAIL,
-                                db_proc.INSTITUTION AS TARGET_COLLEGE,
-                                u.STUDENTID AS SOURCE_STUDENTID,
-                                u.FIRSTNAME AS SOURCE_FIRSTNAME,
-                                u.LASTNAME AS SOURCE_LASTNAME,
-                                u.EMAIL AS SOURCE_EMAIL,
-                                u.COLLEGE AS SOURCE_COLLEGE
-                                FROM
-                                db_process_users AS db_proc
-                                INNER JOIN USERS AS u ON db_proc.USERNAME=u.STUDENTID
-                                                        AND (db_proc.FIRSTNAME IS NOT u.FIRSTNAME OR
-                                                             db_proc.LASTNAME IS NOT u.LASTNAME OR
-                                                             db_proc.EMAIL IS NOT u.EMAIL OR
-                                                             db_proc.INSTITUTION IS NOT u.COLLEGE)
-                                WHERE u.STUDENTID IS NOT NULL";
-
-            if($throttle > 0) {
-                $initial_select .= " LIMIT 0,".$throttle;
-            }
-
-            // Perform left join on data that should be the same.
-            $sql = "CREATE TABLE temp_table AS
-                    (
-                      {$initial_select}
-                    )";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            if($sqlres) {
-                // Insert data back into db_process_courses...
-                $sql = "UPDATE db_process_users INNER JOIN
-                        temp_table
-                        ON db_process_users.USERNAME=temp_table.TARGET_STUDENTID
-                        SET
-                        db_process_users.USERNAME=temp_table.TARGET_STUDENTID,
-                        db_process_users.FIRSTNAME=temp_table.TARGET_FIRSTNAME,
-                        db_process_users.LASTNAME=temp_table.TARGET_LASTNAME,
-                        db_process_users.EMAIL=temp_table.TARGET_EMAIL,
-                        db_process_users.INSTITUTION=temp_table.TARGET_COLLEGE";
-
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-            }
-
-            $sql = "DROP TABLE temp_table";
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            $sqlres = $this->mis->commit_transaction();
-            $result[] = $sqlres;
-        }
-        return $result;
-    }
-
-    public function remove_redundant_students($throttle = 0) {
-        $result = array();
-
-        // Are we connected?
-        if(!$this->is_connected()) {
-            $result[] = false;
-            return $result;
-        }
-
-        $sqlres = $this->mis->begin_transaction();
-        $result[] = $sqlres;
-
-        if($sqlres) {
-            // Drop the temporary table if it already exists
-            $sql = "DROP TABLE IF EXISTS temp_table";
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Perform a SELECT DISTINCT as we are ignoring colleges.
-            $initial_select = "SELECT DISTINCT
-                                db_proc.USERNAME AS TARGET_STUDENTID,
-                                u.STUDENTID AS SOURCE_STUDENTID
-                                FROM
-                                db_process_users AS db_proc
-                                LEFT JOIN USERS AS u ON db_proc.USERNAME=u.STUDENTID COLLATE utf8_unicode_ci
-                                WHERE u.STUDENTID IS NULL";
-
-            if($throttle > 0) {
-                $initial_select .= " LIMIT 0,".$throttle;
-            }
-
-            // Perform left join on data that should be the same.
-            $sql = "CREATE TABLE temp_table AS
-                    (
-                      {$initial_select}
-                    )";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            if($sqlres) {
-                // How many students are in the temporary table?
-                $sql = "SELECT TARGET_STUDENTID FROM temp_table";
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-
-                if($sqlres) {
-                    // Delete students specified in the temp table
-                    $students = $sqlres->getRows();
-
-                    foreach($students as $student) {
-                        $sql = "DELETE FROM db_process_users WHERE USERNAME='{$student->TARGET_STUDENTID}'";
-
-                        $sqlres = $this->mis->execute($sql);
-                        $result[] = $sqlres;
-
-                        // TODO Need to output some debugging info here.
-                    }
-                }
-
-                // Drop temp table as a matter of course...
-                $sql = "DROP TABLE temp_table";
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-            }
-
-            $sqlres = $this->mis->commit_transaction();
-            $result[] = $sqlres;
-        }
-        return $result;
-    }
-
-
     /**
      * Perform a left join on 'courses' and 'db_process_courses' to see if there are any courses listed in 'courses'
      * that are missing from 'db_process_courses'
      *
      * @return int
      */
-    public function create_new_courses($throttle = 0, $category='Miscellaneous') {
+    public function create_courses($throttle = 0, $category='Miscellaneous') {
         $result = array();
 
         // Are we connected?
@@ -491,6 +345,11 @@ class target_mis {
             $result[] = $sqlres;
 
             if($sqlres) {
+                // Truncate db_process_courses
+                $sql = "TRUNCATE TABLE db_process_courses";
+                $sqlres = $this->mis->execute($sql);
+                $result[] = $sqlres;
+
                 $sql = "INSERT INTO db_process_courses(COURSE_ID,COURSE_NAME,COURSE_SHORTNAME,COURSE_CATEGORY)
                         SELECT SOURCE_COURSEID,SOURCE_FULL_NAME,SOURCE_COURSEID,'{$category}'
                         FROM temp_table
@@ -511,140 +370,6 @@ class target_mis {
             $result[] = $sqlres;
         }
 
-        return $result;
-    }
-
-    public function update_courses($throttle = 0, $category='Miscellaneous') {
-        $result = array();
-
-        // Are we connected?
-        if(!$this->is_connected()) {
-            $result[] = false;
-            return $result;
-        }
-
-        $sqlres = $this->mis->begin_transaction();
-        $result[] = $sqlres;
-
-        if($sqlres) {
-            // Drop the temp table as a matter of course...
-            $sql = "DROP TABLE IF EXISTS temp_table";
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Perform a SELECT DISTINCT as we are ignoring colleges.
-            $initial_select = "SELECT DISTINCT
-                                db_proc.COURSE_ID AS TARGET_COURSE_ID,
-                                db_proc.COURSE_NAME AS TARGET_COURSE_NAME,
-                                db_proc.COURSE_SHORTNAME AS TARGET_COURSE_SHORTNAME,
-                                c.COURSEID AS SOURCE_COURSEID,
-                                c.AOS_DESCRIPTION AS SOURCE_DESCRIPTION,
-                                c.FULL_DESCRIPTION AS SOURCE_FULL_NAME
-                                FROM
-                                db_process_courses AS db_proc
-                                INNER JOIN COURSES AS c ON db_proc.COURSE_ID=c.COURSEID
-                                WHERE c.COURSEID IS NOT NULL";
-
-            if($throttle > 0) {
-                $initial_select .= " LIMIT 0,".$throttle;
-            }
-
-            // Perform left join on data that should be the same.
-            $sql = "CREATE TABLE temp_table AS
-                    (
-                      {$initial_select}
-                    )";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            if($sqlres) {
-                // Insert data back into db_process_courses...
-                $sql = "UPDATE db_process_courses INNER JOIN
-                        temp_table
-                        ON db_process_courses.COURSE_ID=temp_table.TARGET_COURSE_ID
-                        SET
-                        db_process_courses.COURSE_ID=temp_table.TARGET_COURSE_ID,
-                        db_process_courses.COURSE_NAME=temp_table.SOURCE_FULL_NAME,
-                        db_process_courses.COURSE_SHORTNAME=temp_table.TARGET_COURSE_ID,
-                        db_process_courses.COURSE_CATEGORY='{$category}'";
-
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-            }
-
-            $sql = "DROP TABLE temp_table";
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            $sqlres = $this->mis->commit_transaction();
-            $result[] = $sqlres;
-        }
-        return $result;
-    }
-
-    public function remove_redundant_courses($throttle = 0) {
-        $result = array();
-
-        // Are we connected?
-        if(!$this->is_connected()) {
-            $result[] = false;
-            return $result;
-        }
-
-        $sqlres = $this->mis->begin_transaction();
-        $result[] = $sqlres;
-
-        if($sqlres) {
-            // Drop the temp table as a matter of course...
-            $sql = "DROP TABLE IF EXISTS temp_table";
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Perform a SELECT DISTINCT as we are ignoring colleges.
-            $initial_select = "SELECT DISTINCT
-                                db_proc.COURSE_ID AS TARGET_COURSE_ID,
-                                c.COURSEID AS SOURCE_COURSEID,
-                                FROM
-                                db_process_courses AS db_proc
-                                LEFT JOIN COURSES AS c ON db_proc.COURSE_ID=c.COURSEID
-                                WHERE c.COURSEID IS NOT NULL";
-
-            if($throttle > 0) {
-                $initial_select .= " LIMIT 0,".$throttle;
-            }
-
-            // Perform left join on data that should be the same.
-            $sql = "CREATE TABLE temp_table AS
-                    (
-                      {$initial_select}
-                    )";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            if($sqlres) {
-                // Delete courses specified in the temp table
-                $courses = $sqlres->getRows();
-
-                foreach($courses as $course) {
-                    $sql = "DELETE FROM db_process_courses WHERE COURSE_ID='{$course->TARGET_COURSE_ID}'";
-
-                    $sqlres = $this->mis->execute($sql);
-                    $result[] = $sqlres;
-
-                    // TODO Need to output some debugging info here.
-                }
-
-                // Drop the temp table as a matter of course...
-                $sql = "DROP TABLE temp_table";
-                $sqlres = $this->mis->execute($sql);
-                $result[] = $sqlres;
-            }
-
-            $sqlres = $this->mis->commit_transaction();
-            $result[] = $sqlres;
-        }
         return $result;
     }
 
@@ -1141,53 +866,41 @@ class target_mis {
         $this->infer_course_all_years();
 
         // User authentication:
-        // 2. Update current students
-        echo '2. Update current students'.$this->get_line_end();
-        $this->update_students($throttle);
         // 3. Create new students
-        echo '3. Create new students'.$this->get_line_end();
-        $this->create_new_students($throttle);
-        // 4. Delete old students
-        echo '4. Remove old students'.$this->get_line_end();
-        $this->remove_redundant_students($throttle);
+        echo '3. Create students'.$this->get_line_end();
+        $this->create_students($throttle);
 
         // Categories:
-        // 5. Update categories
-        echo '5. Create category'.$this->get_line_end();
+        // 4. Update categories
+        echo '4. Create category'.$this->get_line_end();
         $this->create_new_category($targetcategory);
 
         // Courses:
-        // 6. Update current courses
-        echo '6. Update current courses'.$this->get_line_end();
-        $this->update_courses($throttle, $targetcategory);
-        // 7. Create new courses
-        echo '7. Create new courses'.$this->get_line_end();
-        $this->create_new_courses($throttle, $targetcategory);
-        // 8. Delete old courses
-        echo '8. Create redundant courses'.$this->get_line_end();
-        $this->remove_redundant_courses($throttle);
+        // 5. Update current courses
+        echo '5. Create courses'.$this->get_line_end();
+        $this->create_courses($throttle, $targetcategory);
 
         // Enrolments:
-        // 9. Update internal enrolment tables
-        echo '9. Remove enrolment tables'.$this->get_line_end();
+        // 6. Update internal enrolment tables
+        echo '6. Remove enrolment tables'.$this->get_line_end();
         $this->remove_enrolment_tables();
-        // 10. Create the necessary tables on to the data.
-        echo '10. Create enrolment tables'.$this->get_line_end();
+        // 7. Create the necessary tables on to the data.
+        echo '7. Create enrolment tables'.$this->get_line_end();
         $this->create_enrolment_tables();
-        // 11. Truncate the enrolments table...
-        echo '11. Clear current enrolments'.$this->get_line_end();
+        // 8. Truncate the enrolments table...
+        echo '8. Clear current enrolments'.$this->get_line_end();
         $this->clear_enrolments();
-        echo '12. Add student unit enrolments to enrolment table'.$this->get_line_end();
-        // 12. Now students on to units...
+        // 9. Now students on to units...
+        echo '9. Add student unit enrolments to enrolment table'.$this->get_line_end();
         $this->update_unit_enrolments();
-        // 13 ... courses...
-        echo '13. Add student course enrolments to enrolment table'.$this->get_line_end();
+        // 10 ... courses...
+        echo '10. Add student course enrolments to enrolment table'.$this->get_line_end();
         $this->update_course_enrolments();
-        // 14 ... course (all years)...
-        echo '14. Add student course (all years) enrolments to enrolment table'.$this->get_line_end();
+        // 11 ... course (all years)...
+        echo '11. Add student course (all years) enrolments to enrolment table'.$this->get_line_end();
         $this->update_course_all_years_enrolments();
-        // 15 ... and programmes
-        echo '15. Add student programme enrolments to enrolment table'.$this->get_line_end();
+        // 12 ... and programmes
+        echo '12. Add student programme enrolments to enrolment table'.$this->get_line_end();
         $this->update_programme_enrolments();
 
         // Perform actual authentication and enrolment?
@@ -1195,11 +908,11 @@ class target_mis {
         $perform_enrol = get_config('local_ual_db_process', 'userenrol');
 
         if($perform_auth) {
-            echo '16. Call auth plugin to authenticate users'.$this->get_line_end();
+            echo '13. Call auth plugin to authenticate users'.$this->get_line_end();
             $this->authenticate_users(false, false);
         }
         if($perform_enrol) {
-            echo '17. Call enrolment plugin to enrol users'.$this->get_line_end();
+            echo '14. Call enrolment plugin to enrol users'.$this->get_line_end();
             $this->enrol_users(false, false);
         }
     }

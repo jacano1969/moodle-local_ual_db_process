@@ -41,9 +41,7 @@ class override_form extends moodleform {
 
         $mform->addElement('header', 'studentsheader', get_string('students_header', 'local_ual_db_process'));
         $studentsbuttonarray=array();
-        $studentsbuttonarray[] = &$mform->createElement('submit', 'create_new_students', get_string('create_new_students', 'local_ual_db_process'));
-        $studentsbuttonarray[] = &$mform->createElement('submit', 'update_current_students', get_string('update_current_students', 'local_ual_db_process'));
-        $studentsbuttonarray[] = &$mform->createElement('submit', 'delete_redundant_students', get_string('delete_redundant_students', 'local_ual_db_process'));
+        $studentsbuttonarray[] = &$mform->createElement('submit', 'create_students', get_string('create_students', 'local_ual_db_process'));
         $mform->addGroup($studentsbuttonarray, 'studentsbuttonar', '', array(' '), false);
 
         $mform->addElement('header', 'categoryheader', get_string('category_header', 'local_ual_db_process'));
@@ -54,9 +52,7 @@ class override_form extends moodleform {
         $mform->addElement('header', 'courseheader', get_string('courses_header', 'local_ual_db_process'));
         $coursebuttonarray=array();
         $coursebuttonarray[] = &$mform->createElement('submit', 'create_allyear_courses', get_string('create_allyear_courses', 'local_ual_db_process'));
-        $coursebuttonarray[] = &$mform->createElement('submit', 'create_new_courses', get_string('create_new_courses', 'local_ual_db_process'));
-        $coursebuttonarray[] = &$mform->createElement('submit', 'update_current_courses', get_string('update_current_courses', 'local_ual_db_process'));
-        $coursebuttonarray[] = &$mform->createElement('submit', 'delete_redundant_courses', get_string('delete_redundant_courses', 'local_ual_db_process'));
+        $coursebuttonarray[] = &$mform->createElement('submit', 'create_courses', get_string('create_courses', 'local_ual_db_process'));
         $mform->addGroup($coursebuttonarray, 'coursesbuttonar', '', array(' '), false);
 
         $mform->addElement('header', 'authheader', get_string('auth_header', 'local_ual_db_process'));
@@ -79,15 +75,11 @@ class override_form extends moodleform {
 
 
 define('UAL_ACTION_NONE', 0);
-define('UAL_ACTION_NEW_COURSES', 1);
-define('UAL_ACTION_UPDATE_COURSES', 2);
-define('UAL_ACTION_REMOVE_REDUNDANT_COURSES', 3);
+define('UAL_ACTION_CREATE_COURSES', 2);
 define('UAL_ACTION_UPDATE_ENROLMENT_TABLES', 4);
 define('UAL_ACTION_ENROL_USERS', 5);
 define('UAL_ACTION_UPDATE_CATEGORY', 6);
-define('UAL_ACTION_NEW_STUDENTS', 7);
-define('UAL_ACTION_UPDATE_STUDENTS', 8);
-define('UAL_ACTION_REMOVE_REDUNDANT_STUDENTS', 9);
+define('UAL_ACTION_CREATE_STUDENTS', 7);
 define('UAL_ACTION_AUTH_USERS', 10);
 define('UAL_ACTION_SYNC', 11);
 define('UAL_ACTION_ALLYEAR', 12);
@@ -99,24 +91,12 @@ if (isset($_POST['reset_db'])) {
     $action = UAL_ACTION_RESET_DB;
 }
 
-if (isset($_POST['create_new_students'])) {
-    $action = UAL_ACTION_NEW_STUDENTS;
+if (isset($_POST['create_students'])) {
+    $action = UAL_ACTION_CREATE_STUDENTS;
 }
 
-if (isset($_POST['update_current_students'])) {
-    $action = UAL_ACTION_UPDATE_STUDENTS;
-}
-
-if (isset($_POST['delete_redundant_students'])) {
-    $action = UAL_ACTION_REMOVE_REDUNDANT_STUDENTS;
-}
-
-if (isset($_POST['create_new_courses'])) {
-    $action = UAL_ACTION_NEW_COURSES;
-}
-
-if (isset($_POST['update_current_courses'])) {
-    $action = UAL_ACTION_UPDATE_COURSES;
+if (isset($_POST['create_courses'])) {
+    $action = UAL_ACTION_CREATE_COURSES;
 }
 
 if (isset($_POST['delete_redundant_courses'])) {
@@ -183,28 +163,15 @@ if($action != UAL_ACTION_NONE) {
                 $targetcategory = get_config('local_ual_db_process', 'targetcategory');
                 $db_result = $mis->create_new_category($targetcategory);
                 break;
-            case UAL_ACTION_NEW_STUDENTS:
-                $db_result = $mis->create_new_students($throttle);
+            case UAL_ACTION_CREATE_STUDENTS:
+                $db_result = $mis->create_students($throttle);
                 break;
-            case UAL_ACTION_UPDATE_STUDENTS:
-                $db_result = $mis->update_students($throttle);
-                break;
-            case UAL_ACTION_REMOVE_REDUNDANT_STUDENTS:
-                $db_result = $mis->remove_redundant_students($throttle);
-                break;
-            case UAL_ACTION_NEW_COURSES:
+            case UAL_ACTION_CREATE_COURSES:
                 $targetcategory = get_config('local_ual_db_process', 'targetcategory');
-                $db_result = $mis->create_new_courses($throttle, $targetcategory);
+                $db_result = $mis->create_courses($throttle, $targetcategory);
                 break;
             case UAL_ACTION_ALLYEAR:
                 $db_result = $mis->infer_course_all_years();
-                break;
-            case UAL_ACTION_UPDATE_COURSES:
-                $targetcategory = get_config('local_ual_db_process', 'targetcategory');
-                $db_result = $mis->update_courses($throttle, $targetcategory);
-                break;
-            case UAL_ACTION_REMOVE_REDUNDANT_COURSES:
-                $db_result = $mis->remove_redundant_courses($throttle);
                 break;
             // Course enrolments
             case UAL_ACTION_UPDATE_ENROLMENT_TABLES:
