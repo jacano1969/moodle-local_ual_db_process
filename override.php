@@ -31,7 +31,6 @@ require_login();
 class override_form extends moodleform {
 
     function definition() {
-
         $mform =& $this->_form; // Don't forget the underscore!
 
         $mform->addElement('header', 'resetheader', get_string('reset_header', 'local_ual_db_process'));
@@ -39,10 +38,10 @@ class override_form extends moodleform {
         $resetbuttonarray[] = &$mform->createElement('submit', 'reset_db', get_string('reset_db', 'local_ual_db_process'));
         $mform->addGroup($resetbuttonarray, 'resetbuttonar', '', array(' '), false);
 
-        $mform->addElement('header', 'studentsheader', get_string('students_header', 'local_ual_db_process'));
-        $studentsbuttonarray=array();
-        $studentsbuttonarray[] = &$mform->createElement('submit', 'create_students', get_string('create_students', 'local_ual_db_process'));
-        $mform->addGroup($studentsbuttonarray, 'studentsbuttonar', '', array(' '), false);
+        $mform->addElement('header', 'usersheader', get_string('users_header', 'local_ual_db_process'));
+        $usersbuttonarray=array();
+        $usersbuttonarray[] = &$mform->createElement('submit', 'create_users', get_string('create_users', 'local_ual_db_process'));
+        $mform->addGroup($usersbuttonarray, 'usersbuttonar', '', array(' '), false);
 
         $mform->addElement('header', 'categoryheader', get_string('category_header', 'local_ual_db_process'));
         $categorybuttonarray=array();
@@ -73,17 +72,16 @@ class override_form extends moodleform {
     }                           // Close the function
 }                               // Close the class
 
-
 define('UAL_ACTION_NONE', 0);
-define('UAL_ACTION_CREATE_COURSES', 2);
-define('UAL_ACTION_UPDATE_ENROLMENT_TABLES', 4);
-define('UAL_ACTION_ENROL_USERS', 5);
-define('UAL_ACTION_UPDATE_CATEGORY', 6);
-define('UAL_ACTION_CREATE_STUDENTS', 7);
-define('UAL_ACTION_AUTH_USERS', 10);
-define('UAL_ACTION_SYNC', 11);
-define('UAL_ACTION_ALLYEAR', 12);
-define('UAL_ACTION_RESET_DB', 13);
+define('UAL_ACTION_CREATE_COURSES', 1);
+define('UAL_ACTION_UPDATE_ENROLMENT_TABLES', 2);
+define('UAL_ACTION_ENROL_USERS', 3);
+define('UAL_ACTION_UPDATE_CATEGORY', 5);
+define('UAL_ACTION_CREATE_USERS', 6);
+define('UAL_ACTION_AUTH_USERS', 7);
+define('UAL_ACTION_SYNC', 8);
+define('UAL_ACTION_ALLYEAR', 9);
+define('UAL_ACTION_RESET_DB', 10);
 
 $action = UAL_ACTION_NONE;
 
@@ -92,15 +90,11 @@ if (isset($_POST['reset_db'])) {
 }
 
 if (isset($_POST['create_students'])) {
-    $action = UAL_ACTION_CREATE_STUDENTS;
+    $action = UAL_ACTION_CREATE_USERS;
 }
 
 if (isset($_POST['create_courses'])) {
     $action = UAL_ACTION_CREATE_COURSES;
-}
-
-if (isset($_POST['delete_redundant_courses'])) {
-    $action = UAL_ACTION_REMOVE_REDUNDANT_COURSES;
 }
 
 if (isset($_POST['auth_users'])) {
@@ -167,8 +161,8 @@ if($action != UAL_ACTION_NONE) {
                 $targetcategory = get_config('local_ual_db_process', 'targetcategory');
                 $db_result = $mis->create_new_category($targetcategory);
                 break;
-            case UAL_ACTION_CREATE_STUDENTS:
-                $db_result = $mis->create_students($throttle);
+            case UAL_ACTION_CREATE_USERS:
+                $db_result = $mis->create_users($throttle);
                 break;
             case UAL_ACTION_CREATE_COURSES:
                 $targetcategory = get_config('local_ual_db_process', 'targetcategory');
@@ -193,12 +187,15 @@ if($action != UAL_ACTION_NONE) {
                 $db_result = $mis->update_course_all_years_enrolments();
                 // .. and programmes
                 $db_result = $mis->update_programme_enrolments();
+                // Now update staff enrolments...
+                $staffrole = get_config('local_ual_db_process', 'staffrole');
+                $db_result = $mis->update_staff_enrolments($staffrole);
                 break;
             case UAL_ACTION_AUTH_USERS:
                 $db_result = $mis->authenticate_users(false, false);
                 break;
             case UAL_ACTION_ENROL_USERS:
-                $db_result = $mis->enrol_users(false, false);
+                $db_result = $mis->enrol_users();
                 break;
             case UAL_ACTION_SYNC:
                 $db_result = $mis->perform_sync();
