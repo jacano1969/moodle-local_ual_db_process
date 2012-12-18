@@ -38,6 +38,8 @@ $string[ 'targetcategory' ]                 =   'Target category';
 $string[ 'throttle' ]                       =   'Throttle';
 $string[ 'user_auth' ]                      =   'Authenticate users from here';
 $string[ 'user_enrol' ]                     =   'Enrol users from here';
+$string[ 'staffrole' ]                      =   'Role for staff';
+$string[ 'studentrole' ]                      =   'Role for students';
 
 // Test page
 $string[ 'testpage_title']                  =   'UAL Database Processor Test';
@@ -53,8 +55,8 @@ $string[ 'logpage_title']                   =   'UAL Database Processor Logs';
 
 // Override page
 $string[ 'overridepage_title']              =   'UAL Database Processor Manual Override';
-$string[ 'students_header' ]                =   'Students';
-$string[ 'create_students' ]                =   'Create new';
+$string[ 'users_header' ]                   =   'Users';
+$string[ 'create_users' ]                   =   'Create new';
 $string[ 'category_header' ]                =   'Categories';
 $string[ 'update_categories' ]              =   'Update';
 $string[ 'courses_header' ]                 =   'Courses';
