@@ -43,26 +43,32 @@ if ($hassiteconfig) { // needs this condition or there is error on login page
     $dbtype = new admin_setting_configselect('local_ual_db_process/dbconnectiontype', get_string('db_connection','local_ual_db_process'), '', '', $options);
     $settings->add($dbtype);
 
-    $dbhost = new admin_setting_configtext('local_ual_db_process/dbhost', get_string( 'db_host', 'local_ual_db_process'), '', PARAM_TEXT);
+    $dbhost = new admin_setting_configtext('local_ual_db_process/dbhost', get_string( 'db_host', 'local_ual_db_process'), '', '', PARAM_TEXT);
     $settings->add($dbhost);
 
-    $dbname = new admin_setting_configtext('local_ual_db_process/dbname', get_string( 'db_name', 'local_ual_db_process'), '', PARAM_TEXT);
+    $dbname = new admin_setting_configtext('local_ual_db_process/dbname', get_string( 'db_name', 'local_ual_db_process'), '', '', PARAM_TEXT);
     $settings->add($dbname);
 
-    $dbuser = new admin_setting_configtext('local_ual_db_process/dbuser', get_string( 'db_user', 'local_ual_db_process'), '', PARAM_TEXT);
+    $dbuser = new admin_setting_configtext('local_ual_db_process/dbuser', get_string( 'db_user', 'local_ual_db_process'), '', '', PARAM_TEXT);
     $settings->add($dbuser);
 
-    $dbpassword = new admin_setting_configpasswordunmask('local_ual_db_process/dbpassword', get_string( 'db_pass', 'local_ual_db_process' ), '', PARAM_TEXT);
+    $dbpassword = new admin_setting_configpasswordunmask('local_ual_db_process/dbpassword', get_string( 'db_pass', 'local_ual_db_process' ), '', '');
     $settings->add($dbpassword);
 
     $dbdebug = new admin_setting_configcheckbox('local_ual_db_process/dbdebug', get_string( 'db_debug', 'local_ual_db_process' ), '', 0);
     $settings->add($dbdebug);
 
-    $targetcategory = new admin_setting_configtext('local_ual_db_process/targetcategory', get_string( 'targetcategory', 'local_ual_db_process' ), 'UAL', PARAM_TEXT);
+    $targetcategory = new admin_setting_configtext('local_ual_db_process/targetcategory', get_string( 'targetcategory', 'local_ual_db_process' ), '', 'UAL', PARAM_TEXT);
     $settings->add($targetcategory);
 
-    $throttle = new admin_setting_configtext('local_ual_db_process/throttle', get_string( 'throttle', 'local_ual_db_process' ), 0, PARAM_INT);
+    $throttle = new admin_setting_configtext('local_ual_db_process/throttle', get_string( 'throttle', 'local_ual_db_process' ), '', 0, PARAM_INT);
     $settings->add($throttle);
+
+    $staffrole = new admin_setting_configtext('local_ual_db_process/staffrole', get_string( 'staffrole', 'local_ual_db_process' ), '', 'editingteacher', PARAM_TEXT);
+    $settings->add($staffrole);
+
+    $studentrole = new admin_setting_configtext('local_ual_db_process/studentrole', get_string( 'studentrole', 'local_ual_db_process' ), '', 'student', PARAM_TEXT);
+    $settings->add($studentrole);
 
     $userauth = new admin_setting_configcheckbox('local_ual_db_process/userauth', get_string( 'user_auth', 'local_ual_db_process' ), '', 1);
     $settings->add($userauth);
