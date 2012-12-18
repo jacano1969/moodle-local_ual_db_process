@@ -218,7 +218,7 @@ class target_mis {
         return $result;
     }
 
-    public function create_students($throttle = 0) {
+    public function create_users($throttle = 0) {
         $result = array();
 
         // Are we connected?
@@ -456,6 +456,42 @@ class target_mis {
         return $result;
     }
 
+    /**
+     * Temporarily handle staff enrolments.
+     *
+     * @return array
+     */
+    public function update_staff_enrolments($staffrole='editingteacher') {
+        $result = array();
+
+        // Are we connected?
+        if(!$this->is_connected()) {
+            $result[] = false;
+            return $result;
+        }
+
+        $sqlres = $this->mis->begin_transaction();
+        $result[] = $sqlres;
+
+        if($sqlres) {
+            // Now copy over the data for student programmes enrolment...
+            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME)
+                    SELECT
+                      STAFFID,
+                      COURSEID,
+                      '{$staffrole}' AS ROLE_NAME
+                    FROM staff_enrolments";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sqlres = $this->mis->commit_transaction();
+            $result[] = $sqlres;
+        }
+
+        return $result;
+    }
+
     public function remove_enrolment_tables() {
         $result = array();
 
@@ -563,12 +599,12 @@ class target_mis {
     }
 
     /**
-     * Currently we are only creating student enrolment tables. Staff enrolments will come directly from the
+     * Currently we are only creating student enrolment tables. Staff enrolments should come directly from the
      * Admin DB tool via a Web Services interface (i.e. not through here).
      *
      * @return array
      */
-    public function create_enrolment_tables($studentrole='student', $staffrole='staff') {
+    public function create_enrolment_tables($studentrole='student') {
         $result = array();
 
         // Are we connected?
