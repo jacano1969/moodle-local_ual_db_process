@@ -780,8 +780,7 @@ class target_mis {
             $result[] = $sqlres;
 
             // Change the GROUP_NAME column to accomodate the course description...
-            $sql = "ALTER TABLE student_programme_enrolment CHANGE
-                    COLUMN 'GROUP_NAME' 'GROUP_NAME' VARCHAR(254) NULL DEFAULT NULL";
+            $sql = "ALTER TABLE student_programme_enrolment MODIFY GROUP_NAME VARCHAR(254)";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
