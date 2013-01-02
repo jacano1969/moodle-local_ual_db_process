@@ -23,7 +23,7 @@
  */
 
 // Use the connection class declared in ual_api. There's no reason to reinvent the wheel...
-require_once $CFG->dirroot . '/local/ual_api/connection.class.php';
+require_once $CFG->dirroot.'/local/ual_api/connection.class.php';
 
 // User authentication is managed by this plugin but utilises dbsyncother...
 require($CFG->dirroot.'/auth/dbsyncother/auth.php');
@@ -131,7 +131,7 @@ class target_mis {
             $this->remove_enrolment_tables();
 
             // Prepare current tables if necessary. If 'id' is already there then this query will fail...
-            $sql = "ALTER TABLE 'COURSE_STRUCTURE' ADD 'id' INT NOT NULL AUTO_INCREMENT FIRST , ADD PRIMARY KEY ( 'id' ) ";
+            $sql = "ALTER TABLE 'COURSE_STRUCTURE'  ADD id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
