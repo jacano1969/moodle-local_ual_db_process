@@ -131,7 +131,7 @@ class target_mis {
             $this->remove_enrolment_tables();
 
             // Prepare current tables if necessary. If 'id' is already there then this query will fail...
-            $sql = "ALTER TABLE 'COURSE_STRUCTURE'  ADD id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
+            $sql = "ALTER TABLE COURSE_STRUCTURE ADD id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
