@@ -89,7 +89,7 @@ if (isset($_POST['reset_db'])) {
     $action = UAL_ACTION_RESET_DB;
 }
 
-if (isset($_POST['create_students'])) {
+if (isset($_POST['create_users'])) {
     $action = UAL_ACTION_CREATE_USERS;
 }
 
