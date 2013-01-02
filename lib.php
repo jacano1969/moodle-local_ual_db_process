@@ -135,7 +135,7 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE INDEX COURSEID ON courses(COURSEID)";
+            $sql = "CREATE INDEX COURSEID ON COURSES(COURSEID)";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
