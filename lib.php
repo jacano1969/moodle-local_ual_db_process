@@ -480,7 +480,7 @@ class target_mis {
                       STAFFID,
                       COURSEID,
                       '{$staffrole}' AS ROLE_NAME
-                    FROM staff_enrolments";
+                    FROM STAFF_ENROLMENTS";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -780,7 +780,7 @@ class target_mis {
             $result[] = $sqlres;
 
             // Change the GROUP_NAME column to accomodate the course description...
-            $sql = "ALTER TABLE 'dev_ualmis'.'student_programme_enrolment' CHANGE
+            $sql = "ALTER TABLE student_programme_enrolment CHANGE
                     COLUMN 'GROUP_NAME' 'GROUP_NAME' VARCHAR(254) NULL DEFAULT NULL";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
