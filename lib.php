@@ -145,7 +145,7 @@ class target_mis {
                    ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
                      CATEGORY_ID varchar(254),
                      CATEGORY_NAME varchar(255),
-                     CATEGORY_PARENT varchar(254) )";
+                     CATEGORY_PARENT varchar(254) ) ENGINE=InnoDB";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -154,7 +154,7 @@ class target_mis {
                      COURSE_ID varchar(254),
                      COURSE_SHORTNAME varchar(100),
                      COURSE_NAME varchar(100),
-                     COURSE_CATEGORY varchar(254) )";
+                     COURSE_CATEGORY varchar(254) ) ENGINE=InnoDB";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -164,7 +164,7 @@ class target_mis {
                      COURSE_ID varchar(254),
                      ROLE_NAME varchar(100),
                      GROUP_ID varchar(254),
-                     GROUP_NAME varchar(254) )";
+                     GROUP_NAME varchar(254) ) ENGINE=InnoDB";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -175,7 +175,7 @@ class target_mis {
                      LASTNAME varchar(254),
                      EMAIL varchar(254),
                      INSTITUTION varchar(254),
-                     IDNUMBER varchar(254) )";
+                     IDNUMBER varchar(254) ) ENGINE=InnoDB";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
