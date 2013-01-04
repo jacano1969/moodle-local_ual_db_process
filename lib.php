@@ -708,7 +708,7 @@ class target_mis {
             $result[] = $sqlres;
 
             $sql = "CREATE TABLE student_course_enrolment AS
-                        SELECT
+                        SELECT DISTINCT
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
 	                        '{$studentrole}' AS ROLE_NAME,
