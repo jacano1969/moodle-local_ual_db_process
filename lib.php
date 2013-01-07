@@ -710,7 +710,11 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE TABLE student_course_enrolment AS
+           /*
+
+           IDW 07/01/2012 Course years enrolments come from Registry: they should not be inferred...
+
+           $sql = "CREATE TABLE student_course_enrolment AS
                         SELECT DISTINCT
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
@@ -722,7 +726,7 @@ class target_mis {
 	                    WHERE cr.PARENTID REGEXP '^[0-9]'";
 
             $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
+            $result[] = $sqlres; */
 
             // We now need to include course enrolments that aren't based on what units a user is enrolled in...
             $sql = "INSERT INTO student_course_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
@@ -770,7 +774,6 @@ class target_mis {
 	                    c.FULL_DESCRIPTION AS GROUP_NAME
 	                    FROM student_course_enrolment AS course_enrol
 	                    INNER JOIN COURSES AS c ON CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5))=c.COURSEID";
-
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
