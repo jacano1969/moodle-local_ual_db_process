@@ -788,7 +788,7 @@ class target_mis {
 	                    CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5),'-',course_enrol.COURSE_ID) AS GROUP_ID,
 	                    c.FULL_DESCRIPTION AS GROUP_NAME
 	                    FROM student_course_enrolment AS course_enrol
-	                    INNER JOIN COURSES AS c ON CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5))=c.COURSEID";
+	                    LEFT JOIN COURSES AS c ON course_enrol.COURSE_ID=c.COURSEID";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
