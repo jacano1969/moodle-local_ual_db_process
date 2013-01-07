@@ -113,6 +113,7 @@ class target_mis {
      */
     public function db_reset() {
         $result = array();
+        $result = array();
 
         // Are we connected?
         if(!$this->is_connected()) {
@@ -364,8 +365,8 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME)
-                    SELECT USER_ID,COURSE_ID,ROLE_NAME FROM student_unit_enrolment";
+            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT USER_ID,COURSE_ID,ROLE_NAME,'','' FROM student_unit_enrolment";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -736,14 +737,25 @@ class target_mis {
             $result[] = $sqlres;
 
             // I'm not sure if we are going to have 'Course (all years)' full description so I'm going to leave it out for now...
-            $sql = "CREATE TABLE student_course_all_years_enrolment AS
+            /*$sql = "CREATE TABLE student_course_all_years_enrolment AS
                         SELECT DISTINCT
 	                    course_enrol.USER_ID AS USER_ID,
                         CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
 	                    CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5),'-',course_enrol.COURSE_ID) AS GROUP_ID,
 	                    course_enrol.GROUP_NAME AS GROUP_NAME
-	                    FROM student_course_enrolment AS course_enrol";
+	                    FROM student_course_enrolment AS course_enrol";*/
+
+            $sql = "CREATE TABLE student_course_all_years_enrolment AS
+                        SELECT DISTINCT
+	                    course_enrol.USER_ID AS USER_ID,
+                        CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
+	                    '{$studentrole}' AS ROLE_NAME,
+	                    CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5),'-',course_enrol.COURSE_ID) AS GROUP_ID,
+	                    c.FULL_DESCRIPTION AS GROUP_NAME
+	                    FROM student_course_enrolment AS course_enrol
+	                    INNER JOIN COURSES AS c ON CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5))=c.COURSEID";
+
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
