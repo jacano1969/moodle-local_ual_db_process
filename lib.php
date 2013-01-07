@@ -810,13 +810,13 @@ class target_mis {
             $result[] = $sqlres;
 
             // Include groups for each course...
-            $sql = "CREATE TABLE student_programme_enrolment AS
+            $sql = "INSERT INTO student_programme_enrolment(USER_ID,COURSE_ID,ROLE_NAME,CHILD_COURSE,GROUP_ID,GROUP_NAME)
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
+	                    cr.COURSEID AS CHILD_COURSE,
                         CONCAT(cr.PARENTID,'-',cr.COURSEID) AS GROUP_ID,
-                        cr.COURSEID AS CHILD_COURSE,
                         NULL AS GROUP_NAME
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
