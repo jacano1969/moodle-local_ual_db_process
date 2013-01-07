@@ -476,11 +476,13 @@ class target_mis {
 
         if($sqlres) {
             // Now copy over the data for student programmes enrolment...
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME)
+            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT
                       STAFFID,
                       COURSEID,
-                      '{$staffrole}' AS ROLE_NAME
+                      '{$staffrole}' AS ROLE_NAME,
+                      '',
+                      ''
                     FROM STAFF_ENROLMENTS";
 
             $sqlres = $this->mis->execute($sql);
@@ -722,6 +724,19 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // We now need to include course enrolments that aren't based on what units a user is enrolled in...
+            $sql = "INSERT INTO student_course_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT
+                      STUDENTID,
+                      COURSEID,
+                      '{$studentrole}' AS ROLE_NAME,
+                      '',
+                      ''
+                    FROM ENROLMENTS WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) > 12";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // Add a primary key
             $sql = "ALTER TABLE student_course_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
@@ -760,6 +775,19 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // We now need to include course (all years) enrolments that aren't based on what units a user is enrolled in...
+            $sql = "INSERT INTO student_course_all_years_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT
+                      STUDENTID,
+                      COURSEID,
+                      '{$studentrole}' AS ROLE_NAME,
+                      '',
+                      ''
+                    FROM ENROLMENTS WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) = 12";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // Add a primary key
             $sql = "ALTER TABLE student_course_all_years_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
@@ -777,6 +805,19 @@ class target_mis {
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // We now need to include course (all years) enrolments that aren't based on what units a user is enrolled in...
+            $sql = "INSERT INTO student_programme_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT
+                      STUDENTID,
+                      COURSEID,
+                      '{$studentrole}' AS ROLE_NAME,
+                      '',
+                      ''
+                    FROM ENROLMENTS WHERE COURSEID LIKE '%PROGR%'";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
