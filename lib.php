@@ -728,9 +728,24 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres; */
 
+            $sql = "CREATE TABLE student_course_enrolment AS
+                        SELECT DISTINCT
+	                        unit_enrol.USER_ID AS USER_ID,
+                            cr.PARENTID AS COURSE_ID,
+	                        '{$studentrole}' AS ROLE_NAME,
+	                        CONCAT(cr.PARENTID,'-',cr.COURSEID) AS GROUP_ID,
+	                        cr.COURSE_NAME AS GROUP_NAME
+                        FROM student_unit_enrolment AS unit_enrol
+                        INNER JOIN course_relationship AS cr ON unit_enrol.COURSE_ID=cr.COURSEID
+                        INNER JOIN ENROLMENTS AS e ON cr.PARENTID=e.COURSEID AND unit_enrol.USER_ID=e.STUDENTID
+	                    WHERE cr.PARENTID REGEXP '^[0-9]' AND LENGTH(cr.PARENTID) > 12";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // We now need to include course enrolments that aren't based on what units a user is enrolled in...
             $sql = "INSERT INTO student_course_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
-                    SELECT
+                    SELECT DISTINCT
                       STUDENTID,
                       COURSEID,
                       '{$studentrole}' AS ROLE_NAME,
@@ -797,13 +812,25 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE TABLE student_programme_enrolment AS
+           /* $sql = "CREATE TABLE student_programme_enrolment AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
 	                    '{$studentrole}' AS ROLE_NAME,
                         CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS GROUP_ID,
                         cr.COURSEID AS CHILD_COURSE,
+                        NULL AS GROUP_NAME
+                        FROM course_relationship AS cr
+                        INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
+                        WHERE cr.PARENTID LIKE '%PROGR%'";*/
+
+            $sql = "CREATE TABLE student_programme_enrolment AS
+                        SELECT DISTINCT
+	                    e.USER_ID AS USER_ID,
+	                    cr.PARENTID AS COURSE_ID,
+	                    '{$studentrole}' AS ROLE_NAME,
+                        CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS GROUP_ID,
+                        CONCAT(CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS CHILD_COURSE,
                         NULL AS GROUP_NAME
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
