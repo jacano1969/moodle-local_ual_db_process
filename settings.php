@@ -76,6 +76,9 @@ if ($hassiteconfig) { // needs this condition or there is error on login page
     $userenrol = new admin_setting_configcheckbox('local_ual_db_process/userenrol', get_string( 'user_enrol', 'local_ual_db_process' ), '', 1);
     $settings->add($userenrol);
 
+    $create_course_all_years = new admin_setting_configcheckbox('local_ual_db_process/create_course_all_years', get_string( 'create_course_all_years', 'local_ual_db_process' ), '', 0);
+    $settings->add($create_course_all_years);
+
     // Add link to configuration page.
     $ADMIN->add('localplugins', $settings);
 
