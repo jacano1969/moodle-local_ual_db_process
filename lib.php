@@ -240,7 +240,7 @@ class target_mis {
             // Insert users where they have a STUDENTID
             $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
                     SELECT
-                      u.STUDENTID AS SOURCE_STUDENTID,
+                      u.USERNAME AS SOURCE_USERNAME,
                       u.FIRSTNAME AS SOURCE_FIRSTNAME,
                       u.LASTNAME AS SOURCE_LASTNAME,
                       u.EMAIL AS SOURCE_EMAIL,
@@ -958,6 +958,7 @@ class target_mis {
         echo '1. Resetting database back to known stage'.$this->get_line_end();
         $this->db_reset();
 
+        // TODO This step will become unnecessary as this will be done at the UAL end
         echo '2. Create \'Course (all years)\' level courses in \'courses\' table';
         $this->infer_course_all_years();
 
