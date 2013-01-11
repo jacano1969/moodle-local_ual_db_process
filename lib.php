@@ -863,6 +863,12 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Change the COURSEID and  column size (it will start off too small)
+            $sql = "ALTER TABLE student_programme_enrolment CHANGE CHILD_COURSE CHILD_COURSE varchar(40)";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // Include groups for each course...
             $sql = "INSERT INTO student_programme_enrolment(USER_ID,COURSE_ID,ROLE_NAME,CHILD_COURSE,GROUP_ID,GROUP_NAME)
                         SELECT DISTINCT
