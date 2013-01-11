@@ -696,6 +696,12 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Change table engine type
+            $sql = "ALTER TABLE student_unit_enrolment ENGINE=INNODB";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // Add a primary key
             $sql = "ALTER TABLE student_unit_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
@@ -739,6 +745,12 @@ class target_mis {
                         INNER JOIN course_relationship AS cr ON unit_enrol.COURSE_ID=cr.COURSEID
                         INNER JOIN ENROLMENTS AS e ON cr.PARENTID=e.COURSEID AND unit_enrol.USER_ID=e.STUDENTID
 	                    WHERE cr.PARENTID REGEXP '^[0-9]' AND LENGTH(cr.PARENTID) > 12";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Change table engine type
+            $sql = "ALTER TABLE student_course_enrolment ENGINE=INNODB";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -793,6 +805,12 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Change table engine type
+            $sql = "ALTER TABLE student_course_all_years_enrolment ENGINE=INNODB";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // We now need to include course (all years) enrolments that aren't based on what units a user is enrolled in...
             $sql = "INSERT INTO student_course_all_years_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT
@@ -835,6 +853,12 @@ class target_mis {
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Change table engine type
+            $sql = "ALTER TABLE student_programme_enrolment ENGINE=INNODB";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -888,7 +912,7 @@ class target_mis {
                     INNER JOIN COURSES AS c
                     ON spe.CHILD_COURSE = c.COURSEID
                     SET spe.GROUP_NAME = c.FULL_DESCRIPTION
-                    WHERE spe.GROUP_NAME IS NULL;";
+                    WHERE spe.GROUP_NAME IS NULL";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
