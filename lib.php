@@ -988,9 +988,15 @@ class target_mis {
         echo '1. Resetting database back to known stage'.$this->get_line_end();
         $this->db_reset();
 
+        $perform_create_course_all_years = get_config('local_ual_db_process', 'create_course_all_years');
+
+        if($perform_create_course_all_years) {
         // TODO This step will become unnecessary as this will be done at the UAL end
         echo '2. Create \'Course (all years)\' level courses in \'courses\' table';
         $this->infer_course_all_years();
+        } else {
+         echo '2. Create \'Course (all years)\' level courses in \'courses\' table WAS SKIPPED (see configuration)';
+        }
 
         // User authentication:
         // 3. Create new students

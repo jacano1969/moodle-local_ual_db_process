@@ -40,6 +40,7 @@ $string[ 'user_auth' ]                      =   'Authenticate users from here';
 $string[ 'user_enrol' ]                     =   'Enrol users from here';
 $string[ 'staffrole' ]                      =   'Role for staff';
 $string[ 'studentrole' ]                      =   'Role for students';
+$string[ 'create_course_all_years' ]      =   'Create \'Course (all years)\' level courses in \'courses\' table from here';
 
 // Test page
 $string[ 'testpage_title']                  =   'UAL Database Processor Test';
