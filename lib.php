@@ -159,7 +159,17 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE TABLE IF NOT EXISTS db_process_enrolments
+            $sql = "CREATE TABLE IF NOT EXISTS db_process_enrolments_students
+                   ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
+                     USER_ID varchar(254),
+                     COURSE_ID varchar(254),
+                     ROLE_NAME varchar(100),
+                     GROUP_ID varchar(254),
+                     GROUP_NAME varchar(254) ) ENGINE=InnoDB";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "CREATE TABLE IF NOT EXISTS db_process_enrolments_staff
                    ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
                      USER_ID varchar(254),
                      COURSE_ID varchar(254),
@@ -342,7 +352,12 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "TRUNCATE TABLE db_process_enrolments";
+            $sql = "TRUNCATE TABLE db_process_enrolments_students";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sql = "TRUNCATE TABLE db_process_enrolments_staff";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -365,7 +380,7 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+            $sql = "INSERT INTO db_process_enrolments_students(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT USER_ID,COURSE_ID,ROLE_NAME,'','' FROM student_unit_enrolment";
 
             $sqlres = $this->mis->execute($sql);
@@ -391,7 +406,7 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+            $sql = "INSERT INTO db_process_enrolments_students(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_enrolment";
 
             $sqlres = $this->mis->execute($sql);
@@ -417,7 +432,7 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+            $sql = "INSERT INTO db_process_enrolments_students(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_course_all_years_enrolment";
 
             $sqlres = $this->mis->execute($sql);
@@ -444,7 +459,7 @@ class target_mis {
 
         if($sqlres) {
             // Now copy over the data for student programmes enrolment...
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+            $sql = "INSERT INTO db_process_enrolments_students(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME FROM student_programme_enrolment";
 
             $sqlres = $this->mis->execute($sql);
@@ -476,7 +491,7 @@ class target_mis {
 
         if($sqlres) {
             // Now copy over the data for student programmes enrolment...
-            $sql = "INSERT INTO db_process_enrolments(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+            $sql = "INSERT INTO db_process_enrolments_staff(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT
                       STAFFID,
                       COURSEID,
@@ -1024,17 +1039,21 @@ class target_mis {
         echo '8. Clear current enrolments'.$this->get_line_end();
         $this->clear_enrolments();
         // 9. Now students on to units...
-        echo '9. Add student unit enrolments to enrolment table'.$this->get_line_end();
+        echo '9. Add student unit enrolments to student enrolment table'.$this->get_line_end();
         $this->update_unit_enrolments();
         // 10 ... courses...
-        echo '10. Add student course enrolments to enrolment table'.$this->get_line_end();
+        echo '10. Add student course enrolments to student enrolment table'.$this->get_line_end();
         $this->update_course_enrolments();
         // 11 ... course (all years)...
-        echo '11. Add student course (all years) enrolments to enrolment table'.$this->get_line_end();
+        echo '11. Add student course (all years) enrolments to student enrolment table'.$this->get_line_end();
         $this->update_course_all_years_enrolments();
         // 12 ... and programmes
-        echo '12. Add student programme enrolments to enrolment table'.$this->get_line_end();
+        echo '12. Add student programme enrolments to student enrolment table'.$this->get_line_end();
         $this->update_programme_enrolments();
+        // 13 ... Update staff enrolments
+        echo '13. Add staff enrolments to staff enrolment table'.$this->get_line_end();
+        $staffrole = get_config('local_ual_db_process', 'staffrole');
+        $this->update_staff_enrolments($staffrole);
 
         // Perform actual authentication and enrolment?
         $perform_auth = get_config('local_ual_db_process', 'userauth');
