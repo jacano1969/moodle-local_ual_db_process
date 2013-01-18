@@ -711,7 +711,7 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE TABLE  CHARACTER SET utf8 COLLATE utf8_unicode_ci student_unit_enrolment AS
+            $sql = "CREATE TABLE student_unit_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT
 	                        STUDENTID AS USER_ID,
 	                        COURSEID AS COURSE_ID,
