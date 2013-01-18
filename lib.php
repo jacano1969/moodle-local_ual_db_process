@@ -668,7 +668,7 @@ class target_mis {
             $result[] = $sqlres;
 
             // Populate the 'COURSE_NAME' and 'PARENT_NAME' columns...
-            $sql = "CREATE TABLE  CHARACTER SET utf8 COLLATE utf8_unicode_ci course_relationship
+            $sql = "CREATE TABLE course_relationship CHARACTER SET utf8 COLLATE utf8_unicode_ci
                         SELECT
                             tt.COURSEID AS COURSEID,
                             c1.FULL_DESCRIPTION AS COURSE_NAME,
@@ -760,7 +760,7 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres; */
 
-            $sql = "CREATE TABLE student_course_enrolment  CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_course_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
@@ -818,7 +818,7 @@ class target_mis {
 	                    course_enrol.GROUP_NAME AS GROUP_NAME
 	                    FROM student_course_enrolment AS course_enrol";*/
 
-            $sql = "CREATE TABLE student_course_all_years_enrolment  CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_course_all_years_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    course_enrol.USER_ID AS USER_ID,
                         CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
@@ -868,7 +868,7 @@ class target_mis {
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";*/
 
-            $sql = "CREATE TABLE student_programme_enrolment  CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_programme_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
