@@ -146,7 +146,9 @@ class target_mis {
                    ( id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
                      CATEGORY_ID varchar(254),
                      CATEGORY_NAME varchar(255),
-                     CATEGORY_PARENT varchar(254) ) ENGINE=InnoDB";
+                     CATEGORY_PARENT varchar(254) )
+                    ENGINE=InnoDB
+                    CHARACTER SET utf8 COLLATE utf8_unicode_ci";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -155,7 +157,9 @@ class target_mis {
                      COURSE_ID varchar(254),
                      COURSE_SHORTNAME varchar(100),
                      COURSE_NAME varchar(100),
-                     COURSE_CATEGORY varchar(254) ) ENGINE=InnoDB";
+                     COURSE_CATEGORY varchar(254) )
+                   ENGINE=InnoDB
+                   CHARACTER SET utf8 COLLATE utf8_unicode_ci";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -165,7 +169,9 @@ class target_mis {
                      COURSE_ID varchar(254),
                      ROLE_NAME varchar(100),
                      GROUP_ID varchar(254),
-                     GROUP_NAME varchar(254) ) ENGINE=InnoDB";
+                     GROUP_NAME varchar(254) )
+                   ENGINE=InnoDB
+                   CHARACTER SET utf8 COLLATE utf8_unicode_ci";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -175,7 +181,9 @@ class target_mis {
                      COURSE_ID varchar(254),
                      ROLE_NAME varchar(100),
                      GROUP_ID varchar(254),
-                     GROUP_NAME varchar(254) ) ENGINE=InnoDB";
+                     GROUP_NAME varchar(254) )
+                   ENGINE=InnoDB
+                   CHARACTER SET utf8 COLLATE utf8_unicode_ci";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -186,7 +194,9 @@ class target_mis {
                      LASTNAME varchar(254),
                      EMAIL varchar(254),
                      INSTITUTION varchar(254),
-                     IDNUMBER varchar(254) ) ENGINE=InnoDB";
+                     IDNUMBER varchar(254) )
+                   ENGINE=InnoDB
+                   CHARACTER SET utf8 COLLATE utf8_unicode_ci";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
@@ -636,11 +646,12 @@ class target_mis {
 
         if($sqlres) {
             // Create, and partially fill, a table demonstrating the parent/child relationship...
-            $sql = "CREATE TABLE temp_table AS
+            $sql = "CREATE TABLE temp_table CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT
                             CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD) AS COURSEID,
                             CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD) AS PARENTID
-                        FROM COURSE_STRUCTURE AS cs";
+                        FROM COURSE_STRUCTURE AS cs
+                    ";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -657,7 +668,7 @@ class target_mis {
             $result[] = $sqlres;
 
             // Populate the 'COURSE_NAME' and 'PARENT_NAME' columns...
-            $sql = "CREATE TABLE course_relationship
+            $sql = "CREATE TABLE  CHARACTER SET utf8 COLLATE utf8_unicode_ci course_relationship
                         SELECT
                             tt.COURSEID AS COURSEID,
                             c1.FULL_DESCRIPTION AS COURSE_NAME,
@@ -700,7 +711,7 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE TABLE student_unit_enrolment AS
+            $sql = "CREATE TABLE  CHARACTER SET utf8 COLLATE utf8_unicode_ci student_unit_enrolment AS
                         SELECT
 	                        STUDENTID AS USER_ID,
 	                        COURSEID AS COURSE_ID,
@@ -749,7 +760,7 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres; */
 
-            $sql = "CREATE TABLE student_course_enrolment AS
+            $sql = "CREATE TABLE student_course_enrolment  CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
@@ -807,7 +818,7 @@ class target_mis {
 	                    course_enrol.GROUP_NAME AS GROUP_NAME
 	                    FROM student_course_enrolment AS course_enrol";*/
 
-            $sql = "CREATE TABLE student_course_all_years_enrolment AS
+            $sql = "CREATE TABLE student_course_all_years_enrolment  CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    course_enrol.USER_ID AS USER_ID,
                         CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
@@ -857,7 +868,7 @@ class target_mis {
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";*/
 
-            $sql = "CREATE TABLE student_programme_enrolment AS
+            $sql = "CREATE TABLE student_programme_enrolment  CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
