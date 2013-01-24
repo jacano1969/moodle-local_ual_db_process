@@ -1096,7 +1096,7 @@ class target_mis {
             $this->infer_course_all_years();
             $this->output_time();
         } else {
-         echo '2. Create \'Course (all years)\' level courses in \'courses\' table WAS SKIPPED (see configuration)'.$this->get_line_end();
+            echo '2. Create \'Course (all years)\' level courses in \'courses\' table WAS SKIPPED (see configuration)'.$this->get_line_end();
         }
 
         // User authentication:
