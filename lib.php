@@ -35,6 +35,11 @@ class target_mis {
     private $mis;
 
     /**
+     * @var int timestamp
+     */
+    public $timestart;
+
+    /**
      * Attempts to connect to MIS as soon as an instance of this class is created.
      */
     public function __construct() {
@@ -1003,68 +1008,156 @@ class target_mis {
         }
     }
 
+    /**
+     * Records when the sync process starts so that we can keep track of progress.
+     */
+    public function start_timer() {
+        $this->timestart = time();
+        $humanreadabletime = date('H:i:s', time());
+        echo get_string('processstarted', 'local_ual_db_process', $humanreadabletime)
+            .$this->get_line_end();
+
+    }
+
+    /**
+     * Tells us how long the sync has been running.
+     */
+    private function output_time() {
+
+        $humanreadabletime = $this->get_human_readable_time();
+
+        echo get_string('processrunningfor', 'local_ual_db_process', $humanreadabletime).
+            $this->get_line_end();
+    }
+
+    /**
+     * Outputs the metrics telling us how long the sync took overall.
+     */
+    public function end_timer() {
+        $a = new stdClass();
+        $a->humanreadabletime = $this->get_human_readable_time();
+        $a->timenow  = date('H:i:s', time());
+        echo get_string('processfinished', 'local_ual_db_process', $a).$this->get_line_end();
+    }
+
+    /**
+     * Counts the seconds since the script started and tells us in human readable format.
+     *
+     * @return string
+     */
+    private function get_human_readable_time() {
+
+        $seconds = time() - $this->timestart;
+
+        $units = array(
+            60 * 60  => array(get_string('hour', 'local_ual_db_process'),
+                get_string('hours', 'local_ual_db_process')),
+            60       => array(get_string('minute', 'local_ual_db_process'),
+                get_string('minutes', 'local_ual_db_process')),
+            1        => array(get_string('second', 'local_ual_db_process'),
+                get_string('seconds', 'local_ual_db_process')),
+        );
+
+        $result = array();
+        foreach ($units as $divisor => $unitname) {
+            $units = intval($seconds / $divisor);
+            if ($units) {
+                $seconds %= $divisor;
+                $name     = $units == 1 ? $unitname[0] : $unitname[1];
+                $result[] = "$units $name";
+            }
+        }
+        if ($result) {
+            $humanreadabletime = implode(', ', $result);
+        } else {
+            $humanreadabletime = "0 ".get_string('seconds', 'local_ual_db_process');
+        }
+
+        return $humanreadabletime;
+    }
+
     public function perform_sync() {
         // What are plugin settings?
         $targetcategory = get_config('local_ual_db_process', 'targetcategory');
         $throttle = get_config('local_ual_db_process', 'targetcategory');
 
         // Perform steps to complete full syncronisation...
+        $this->start_timer();
 
         // 1. Ensure tables we require are all present - and those that shouldn't be there have been removed...
-        echo '1. Resetting database back to known stage'.$this->get_line_end();
+        echo '1. Resetting database back to known state'.$this->get_line_end();
         $this->db_reset();
+        $this->output_time();
 
         $perform_create_course_all_years = get_config('local_ual_db_process', 'create_course_all_years');
 
         if($perform_create_course_all_years) {
-        // TODO This step will become unnecessary as this will be done at the UAL end
-        echo '2. Create \'Course (all years)\' level courses in \'courses\' table';
-        $this->infer_course_all_years();
+            echo '2. Create \'Course (all years)\' level courses in \'courses\' table'.$this->get_line_end();
+            $this->infer_course_all_years();
+            $this->output_time();
         } else {
-         echo '2. Create \'Course (all years)\' level courses in \'courses\' table WAS SKIPPED (see configuration)';
+         echo '2. Create \'Course (all years)\' level courses in \'courses\' table WAS SKIPPED (see configuration)'.$this->get_line_end();
         }
 
         // User authentication:
-        // 3. Create new students
-        echo '3. Create students'.$this->get_line_end();
-        $this->create_students($throttle);
+        // 3. Create new users
+        echo '3. Create users'.$this->get_line_end();
+        $this->create_users($throttle);
+        $this->output_time();
 
         // Categories:
         // 4. Update categories
         echo '4. Create category'.$this->get_line_end();
         $this->create_new_category($targetcategory);
+        $this->output_time();
 
         // Courses:
         // 5. Update current courses
         echo '5. Create courses'.$this->get_line_end();
         $this->create_courses($throttle, $targetcategory);
+        $this->output_time();
 
         // Enrolments:
         // 6. Update internal enrolment tables
         echo '6. Remove enrolment tables'.$this->get_line_end();
         $this->remove_enrolment_tables();
+        $this->output_time();
+
         // 7. Create the necessary tables on to the data.
         echo '7. Create enrolment tables'.$this->get_line_end();
         $this->create_enrolment_tables();
+        $this->output_time();
+
         // 8. Truncate the enrolments table...
         echo '8. Clear current enrolments'.$this->get_line_end();
         $this->clear_enrolments();
+        $this->output_time();
+
         // 9. Now students on to units...
         echo '9. Add student unit enrolments to student enrolment table'.$this->get_line_end();
         $this->update_unit_enrolments();
+        $this->output_time();
+
         // 10 ... courses...
         echo '10. Add student course enrolments to student enrolment table'.$this->get_line_end();
         $this->update_course_enrolments();
+        $this->output_time();
+
         // 11 ... course (all years)...
         echo '11. Add student course (all years) enrolments to student enrolment table'.$this->get_line_end();
         $this->update_course_all_years_enrolments();
+        $this->output_time();
+
         // 12 ... and programmes
         echo '12. Add student programme enrolments to student enrolment table'.$this->get_line_end();
         $this->update_programme_enrolments();
+        $this->output_time();
+
         // 13 ... Update staff enrolments
         echo '13. Add staff enrolments to staff enrolment table'.$this->get_line_end();
         $staffrole = get_config('local_ual_db_process', 'staffrole');
         $this->update_staff_enrolments($staffrole);
+        $this->output_time();
 
         // Perform actual authentication and enrolment?
         $perform_auth = get_config('local_ual_db_process', 'userauth');
@@ -1073,11 +1166,15 @@ class target_mis {
         if($perform_auth) {
             echo '13. Call auth plugin to authenticate users'.$this->get_line_end();
             $this->authenticate_users(false, false);
+            $this->output_time();
         }
         if($perform_enrol) {
             echo '14. Call enrolment plugin to enrol users'.$this->get_line_end();
             $this->enrol_users(false, false);
+            $this->output_time();
         }
+
+        $this->end_timer();
     }
 }
 ?>
