@@ -74,3 +74,14 @@ $string[ 'perform_sync' ]                   =   'Full sync';
 $string[ 'reset_header' ]                   =   'Database Reset';
 $string[ 'reset_db' ]                       =   'Reset DB';
 
+// Process timing
+$string['minute']                           =   'minute';
+$string['minutes']                          =   'minutes';
+$string['second']                           =   'second';
+$string['seconds']                          =   'seconds';
+$string['hour']                             =   'hour';
+$string['hours']                            =   'hours';
+$string['processstarted']                   =   'UAL db process started at {$a}';
+$string['processrunningfor']                =   'UAL db process running for {$a}';
+$string['processfinished']                  =   'UAL db process finished at {$a->timenow}. Total time: {$a->humanreadabletime}';
+
