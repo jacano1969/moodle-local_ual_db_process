@@ -513,7 +513,7 @@ class target_mis {
                       '{$staffrole}' AS ROLE_NAME,
                       '',
                       ''
-                    FROM STAFF_ENROLMENTS";
+                    FROM staff_enrolments";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
