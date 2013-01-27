@@ -192,7 +192,7 @@ if($action != UAL_ACTION_NONE) {
                 $db_result = $mis->update_staff_enrolments($staffrole);
                 break;
             case UAL_ACTION_AUTH_USERS:
-                $db_result = $mis->authenticate_users(false, false);
+                $db_result = $mis->authenticate_users(true, true);
                 break;
             case UAL_ACTION_ENROL_USERS:
                 $db_result = $mis->enrol_users();
