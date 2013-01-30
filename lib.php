@@ -673,7 +673,7 @@ class target_mis {
             $result[] = $sqlres;
 
             // Populate the 'COURSE_NAME' and 'PARENT_NAME' columns...
-            $sql = "CREATE TABLE course_relationship CHARACTER SET utf8 COLLATE utf8_unicode_ci
+            $sql = "CREATE TABLE course_relationship ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci
                         SELECT
                             tt.COURSEID AS COURSEID,
                             c1.FULL_DESCRIPTION AS COURSE_NAME,
