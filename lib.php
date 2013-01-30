@@ -651,7 +651,7 @@ class target_mis {
 
         if($sqlres) {
             // Create, and partially fill, a table demonstrating the parent/child relationship...
-            $sql = "CREATE TABLE temp_table CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE temp_table ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT
                             CONCAT(cs.AOSCD_LINK, cs.LNK_AOS_PERIOD, cs.LNK_PERIOD) AS COURSEID,
                             CONCAT(cs.AOS_CODE,cs.AOS_PERIOD,cs.ACAD_PERIOD) AS PARENTID
@@ -855,7 +855,7 @@ class target_mis {
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";*/
 
-            $sql = "CREATE TABLE student_programme_enrolment ENGINE=InnDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_programme_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
