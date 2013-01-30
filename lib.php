@@ -716,19 +716,13 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            $sql = "CREATE TABLE student_unit_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_unit_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT
 	                        STUDENTID AS USER_ID,
 	                        COURSEID AS COURSE_ID,
 	                        '{$studentrole}' AS ROLE_NAME
                         FROM ENROLMENTS
 	                    WHERE COURSEID NOT REGEXP '^[0-9]'";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Change table engine type
-            $sql = "ALTER TABLE student_unit_enrolment ENGINE=INNODB";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -765,7 +759,7 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres; */
 
-            $sql = "CREATE TABLE student_course_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_course_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
@@ -776,12 +770,6 @@ class target_mis {
                         INNER JOIN course_relationship AS cr ON unit_enrol.COURSE_ID=cr.COURSEID
                         INNER JOIN ENROLMENTS AS e ON cr.PARENTID=e.COURSEID AND unit_enrol.USER_ID=e.STUDENTID
 	                    WHERE cr.PARENTID REGEXP '^[0-9]' AND LENGTH(cr.PARENTID) > 12";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Change table engine type
-            $sql = "ALTER TABLE student_course_enrolment ENGINE=INNODB";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -823,7 +811,7 @@ class target_mis {
 	                    course_enrol.GROUP_NAME AS GROUP_NAME
 	                    FROM student_course_enrolment AS course_enrol";*/
 
-            $sql = "CREATE TABLE student_course_all_years_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_course_all_years_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    course_enrol.USER_ID AS USER_ID,
                         CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
@@ -832,12 +820,6 @@ class target_mis {
 	                    c.FULL_DESCRIPTION AS GROUP_NAME
 	                    FROM student_course_enrolment AS course_enrol
 	                    LEFT JOIN COURSES AS c ON course_enrol.COURSE_ID=c.COURSEID";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Change table engine type
-            $sql = "ALTER TABLE student_course_all_years_enrolment ENGINE=INNODB";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -873,7 +855,7 @@ class target_mis {
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";*/
 
-            $sql = "CREATE TABLE student_programme_enrolment CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
+            $sql = "CREATE TABLE student_programme_enrolment ENGINE=InnDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
@@ -884,12 +866,6 @@ class target_mis {
                         FROM course_relationship AS cr
                         INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
                         WHERE cr.PARENTID LIKE '%PROGR%'";
-
-            $sqlres = $this->mis->execute($sql);
-            $result[] = $sqlres;
-
-            // Change table engine type
-            $sql = "ALTER TABLE student_programme_enrolment ENGINE=INNODB";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
