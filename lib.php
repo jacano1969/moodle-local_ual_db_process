@@ -718,10 +718,11 @@ class target_mis {
 
             $sql = "CREATE TABLE student_unit_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT
-	                        STUDENTID AS USER_ID,
-	                        COURSEID AS COURSE_ID,
+	                        u.USERNAME AS USER_ID,
+	                        e.COURSEID AS COURSE_ID,
 	                        '{$studentrole}' AS ROLE_NAME
-                        FROM ENROLMENTS
+                        FROM ENROLMENTS AS e
+                        INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
 	                    WHERE COURSEID NOT REGEXP '^[0-9]'";
 
             $sqlres = $this->mis->execute($sql);
@@ -777,12 +778,14 @@ class target_mis {
             // We now need to include course enrolments that aren't based on what units a user is enrolled in...
             $sql = "INSERT INTO student_course_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT DISTINCT
-                      STUDENTID,
-                      COURSEID,
+                      u.USERNAME,
+                      e.COURSEID,
                       '{$studentrole}' AS ROLE_NAME,
                       '',
                       ''
-                    FROM ENROLMENTS WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) > 12";
+                    FROM ENROLMENTS AS e
+                    INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
+                    WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) > 12";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -827,12 +830,14 @@ class target_mis {
             // We now need to include course (all years) enrolments that aren't based on what units a user is enrolled in...
             $sql = "INSERT INTO student_course_all_years_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT
-                      STUDENTID,
-                      COURSEID,
+                      u.USERNAME,
+                      e.COURSEID,
                       '{$studentrole}' AS ROLE_NAME,
                       '',
                       ''
-                    FROM ENROLMENTS WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) = 12";
+                    FROM ENROLMENTS AS e
+                    INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
+                    WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) = 12";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -895,12 +900,14 @@ class target_mis {
             // We now need to include course (all years) enrolments that aren't based on what units a user is enrolled in...
             $sql = "INSERT INTO student_programme_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT
-                      STUDENTID,
-                      COURSEID,
+                      u.USERNAME,
+                      e.COURSEID,
                       '{$studentrole}' AS ROLE_NAME,
                       '',
                       ''
-                    FROM ENROLMENTS WHERE COURSEID LIKE '%PROGR%'";
+                    FROM ENROLMENTS AS e
+                    INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
+                    WHERE COURSEID LIKE '%PROGR%'";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
