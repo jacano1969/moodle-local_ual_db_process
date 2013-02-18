@@ -609,7 +609,7 @@ class target_mis {
                             c.AOS_DESCRIPTION AS FULL_DESCRIPTION,
                             c.SCHOOL AS SCHOOL
                           FROM COURSES AS c
-                          WHERE c.COURSEID REGEXP '^[0-9]' AND LENGTH(c.COURSEID)=15
+                          WHERE c.COURSEID REGEXP '^[0-9]'
                         )";
 
                 $sqlres = $this->mis->execute($sql);
