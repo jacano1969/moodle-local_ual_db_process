@@ -596,7 +596,8 @@ class target_mis {
             $result[] = $sqlres;
 
             if($sqlres) {
-                // The following table can take over a minute to construct
+                // The following table can take over a minute to construct because we can't use indexes with a REGEXP -
+                // a WHERE clause containing a REGEXP has to scan the entire table.
                 $sql = "INSERT INTO COURSES(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
                         (
                           SELECT DISTINCT
@@ -708,6 +709,20 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Create index for STUDENTID on USERS table
+            $sql = "CREATE INDEX STUDENTID ON USERS(STUDENTID)";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Create index for USERNAME on users table
+            $sql = "CREATE INDEX STUDENTID ON ENROLMENTS(STUDENTID)";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Indexing the STUDENTID columns on both the ENROLMENTS and USERS table will speed up the query slightly
+            // but note, again, that we can't use indexes for REGEXP calls.
             $sql = "CREATE TABLE student_unit_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT
 	                        u.USERNAME AS USER_ID,
