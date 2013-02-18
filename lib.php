@@ -598,27 +598,19 @@ class target_mis {
             if($sqlres) {
                 // The following table can take over a minute to construct
                 $sql = "INSERT INTO COURSES(COURSEID, AOS_CODE, AOS_PERIOD, ACAD_PERIOD, COLLEGE, AOS_DESCRIPTION, FULL_DESCRIPTION, SCHOOL)
-                        SELECT temp_table.all_years_id,
-                               temp_table.aos_code,
-                               temp_table.aos_period,
-                               temp_table.acad_period,
-                               temp_table.college,
-                               temp_table.description,
-                               temp_table.description,
-                               temp_table.school
-                        FROM
                         (
                           SELECT DISTINCT
-                            CONCAT(SUBSTR(c.COURSEID, 1, 7), SUBSTR(c.COURSEID, -5, 5)) AS all_years_id,
-                            c.AOS_CODE AS aos_code,
-                            SUBSTR(c.AOS_PERIOD, 1, 2) AS aos_period,
-                            c.ACAD_PERIOD AS acad_period,
-                            c.COLLEGE AS college,
-                            c.AOS_DESCRIPTION AS description,
-                            c.SCHOOL AS school
+                            CONCAT(SUBSTR(c.COURSEID, 1, 7), SUBSTR(c.COURSEID, -5, 5)) AS COURSEID,
+                            c.AOS_CODE AS AOS_CODE,
+                            SUBSTR(c.AOS_PERIOD, 1, 2) AS AOS_PERIOD,
+                            c.ACAD_PERIOD AS ACAD_PERIOD,
+                            c.COLLEGE AS COLLEGE,
+                            c.AOS_DESCRIPTION AS AOS_DESCRIPTION,
+                            c.AOS_DESCRIPTION AS FULL_DESCRIPTION,
+                            c.SCHOOL AS SCHOOL
                           FROM COURSES AS c
                           WHERE c.COURSEID REGEXP '^[0-9]' AND LENGTH(c.COURSEID)=15
-                        ) AS temp_table";
+                        )";
 
                 $sqlres = $this->mis->execute($sql);
                 $result[] = $sqlres;
