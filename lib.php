@@ -145,6 +145,11 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // Index USERNAME column in USERS table to speed up building of My Moodle and left hand nav.
+            $sql = "CREATE INDEX USERNAME ON USERS(USERNAME)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
             // TODO Check that usernames are all lowercase
 
             $sql = "CREATE TABLE IF NOT EXISTS db_process_category
