@@ -231,8 +231,10 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            $category = $this->mis->real_escape_string($category);
+
             $sql = "INSERT INTO db_process_category(CATEGORY_ID,CATEGORY_NAME,CATEGORY_PARENT)
-                        SELECT '{$category}','{$category}',0";
+                        SELECT {$category},{$category},0";
 
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
@@ -332,12 +334,14 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            $category = $this->mis->real_escape_string($category);
+
             $sql = "INSERT INTO db_process_courses(COURSE_ID,COURSE_NAME,COURSE_SHORTNAME,COURSE_CATEGORY)
                     SELECT
                       c.COURSEID AS SOURCE_COURSEID,
                       c.AOS_DESCRIPTION AS SOURCE_DESCRIPTION,
                       c.FULL_DESCRIPTION AS SOURCE_FULL_NAME,
-                      '{$category}' AS CATEGORY
+                      {$category} AS CATEGORY
                     FROM COURSES AS c";
 
             if($throttle > 0) {
@@ -505,12 +509,15 @@ class target_mis {
         $result[] = $sqlres;
 
         if($sqlres) {
+
+            $staffrole = $this->mis->real_escape_string($staffrole);
+
             // Now copy over the data for student programmes enrolment...
             $sql = "INSERT INTO db_process_enrolments_staff(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT
                       STAFFID,
                       COURSEID,
-                      '{$staffrole}' AS ROLE_NAME,
+                      {$staffrole} AS ROLE_NAME,
                       '',
                       ''
                     FROM staff_enrolments";
@@ -723,11 +730,14 @@ class target_mis {
 
             // Indexing the STUDENTID columns on both the ENROLMENTS and USERS table will speed up the query slightly
             // but note, again, that we can't use indexes for REGEXP calls.
+
+            $studentrole = $this->mis->real_escape_string($studentrole);
+
             $sql = "CREATE TABLE student_unit_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT
 	                        u.USERNAME AS USER_ID,
 	                        e.COURSEID AS COURSE_ID,
-	                        '{$studentrole}' AS ROLE_NAME
+	                        {$studentrole} AS ROLE_NAME
                         FROM ENROLMENTS AS e
                         INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
 	                    WHERE COURSEID NOT REGEXP '^[0-9]'";
