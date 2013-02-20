@@ -826,15 +826,8 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
-            // I'm not sure if we are going to have 'Course (all years)' full description so I'm going to leave it out for now...
-            /*$sql = "CREATE TABLE student_course_all_years_enrolment AS
-                        SELECT DISTINCT
-	                    course_enrol.USER_ID AS USER_ID,
-                        CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
-	                    '{$studentrole}' AS ROLE_NAME,
-	                    CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5),'-',course_enrol.COURSE_ID) AS GROUP_ID,
-	                    course_enrol.GROUP_NAME AS GROUP_NAME
-	                    FROM student_course_enrolment AS course_enrol";*/
+            // TODO 'Course (all years)' courses are being created upstream from here so we need to investigate if
+            // the following query can be replace? Leave it for now as it works.
 
             $sql = "CREATE TABLE student_course_all_years_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
@@ -869,19 +862,7 @@ class target_mis {
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
-
-           /* $sql = "CREATE TABLE student_programme_enrolment AS
-                        SELECT DISTINCT
-	                    e.USER_ID AS USER_ID,
-	                    cr.PARENTID AS COURSE_ID,
-	                    '{$studentrole}' AS ROLE_NAME,
-                        CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS GROUP_ID,
-                        cr.COURSEID AS CHILD_COURSE,
-                        NULL AS GROUP_NAME
-                        FROM course_relationship AS cr
-                        INNER JOIN student_course_enrolment AS e ON cr.COURSEID=e.COURSE_ID
-                        WHERE cr.PARENTID LIKE '%PROGR%'";*/
-
+            
             $sql = "CREATE TABLE student_programme_enrolment ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci AS
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
