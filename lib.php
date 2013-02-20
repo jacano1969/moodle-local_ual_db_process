@@ -786,7 +786,7 @@ class target_mis {
                         SELECT DISTINCT
 	                        unit_enrol.USER_ID AS USER_ID,
                             cr.PARENTID AS COURSE_ID,
-	                        '{$studentrole}' AS ROLE_NAME,
+	                        {$studentrole} AS ROLE_NAME,
 	                        CONCAT(cr.PARENTID,'-',cr.COURSEID) AS GROUP_ID,
 	                        cr.COURSE_NAME AS GROUP_NAME
                         FROM student_unit_enrolment AS unit_enrol
@@ -802,7 +802,7 @@ class target_mis {
                     SELECT DISTINCT
                       u.USERNAME,
                       e.COURSEID,
-                      '{$studentrole}' AS ROLE_NAME,
+                      {$studentrole} AS ROLE_NAME,
                       '',
                       ''
                     FROM ENROLMENTS AS e
@@ -840,7 +840,7 @@ class target_mis {
                         SELECT DISTINCT
 	                    course_enrol.USER_ID AS USER_ID,
                         CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5)) AS COURSE_ID,
-	                    '{$studentrole}' AS ROLE_NAME,
+	                    {$studentrole} AS ROLE_NAME,
 	                    CONCAT(SUBSTR(course_enrol.COURSE_ID, 1, 7), SUBSTR(course_enrol.COURSE_ID, -5, 5),'-',course_enrol.COURSE_ID) AS GROUP_ID,
 	                    c.FULL_DESCRIPTION AS GROUP_NAME
 	                    FROM student_course_enrolment AS course_enrol
@@ -854,7 +854,7 @@ class target_mis {
                     SELECT
                       u.USERNAME,
                       e.COURSEID,
-                      '{$studentrole}' AS ROLE_NAME,
+                      {$studentrole} AS ROLE_NAME,
                       '',
                       ''
                     FROM ENROLMENTS AS e
@@ -886,7 +886,7 @@ class target_mis {
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
-	                    '{$studentrole}' AS ROLE_NAME,
+	                    {$studentrole} AS ROLE_NAME,
                         CONCAT(cr.PARENTID,'-',CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS GROUP_ID,
                         CONCAT(CONCAT(SUBSTR(cr.COURSEID, 1, 7), SUBSTR(cr.COURSEID, -5, 5))) AS CHILD_COURSE,
                         NULL AS GROUP_NAME
@@ -908,7 +908,7 @@ class target_mis {
                         SELECT DISTINCT
 	                    e.USER_ID AS USER_ID,
 	                    cr.PARENTID AS COURSE_ID,
-	                    '{$studentrole}' AS ROLE_NAME,
+	                    {$studentrole} AS ROLE_NAME,
 	                    cr.COURSEID AS CHILD_COURSE,
                         CONCAT(cr.PARENTID,'-',cr.COURSEID) AS GROUP_ID,
                         NULL AS GROUP_NAME
@@ -924,7 +924,7 @@ class target_mis {
                     SELECT
                       u.USERNAME,
                       e.COURSEID,
-                      '{$studentrole}' AS ROLE_NAME,
+                      {$studentrole} AS ROLE_NAME,
                       '',
                       ''
                     FROM ENROLMENTS AS e
