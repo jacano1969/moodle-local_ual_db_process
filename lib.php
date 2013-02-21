@@ -750,6 +750,19 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // add new_enrolments - as added through the UAL Admin TOOL
+            $sql = "INSERT INTO student_unit_enrolment 
+                        SELECT
+	                        u.USERNAME AS USER_ID,
+	                        e.COURSEID AS COURSE_ID,
+	                        {$studentrole} AS ROLE_NAME
+                        FROM new_enrolments AS e
+                        INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
+	                    WHERE COURSEID NOT REGEXP '^[0-9]'";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+            
             // Add a primary key
             $sql = "ALTER TABLE student_unit_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
@@ -797,6 +810,22 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // create student course enrolments as added through the UAL Admin Tool
+            $sql = "INSERT INTO student_course_enrolment 
+                        SELECT DISTINCT
+	                        unit_enrol.USER_ID AS USER_ID,
+                            cr.PARENTID AS COURSE_ID,
+	                        {$studentrole} AS ROLE_NAME,
+	                        CONCAT(cr.PARENTID,'-',cr.COURSEID) AS GROUP_ID,
+	                        cr.COURSE_NAME AS GROUP_NAME
+                        FROM student_unit_enrolment AS unit_enrol
+                        INNER JOIN course_relationship AS cr ON unit_enrol.COURSE_ID=cr.COURSEID
+                        INNER JOIN new_enrolments AS e ON cr.PARENTID=e.COURSEID AND unit_enrol.USER_ID=e.STUDENTID
+	                    WHERE cr.PARENTID REGEXP '^[0-9]' AND LENGTH(cr.PARENTID) > 12";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+            
             // We now need to include course enrolments that aren't based on what units a user is enrolled in...
             $sql = "INSERT INTO student_course_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
                     SELECT DISTINCT
@@ -812,6 +841,21 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // .. and for UAL Admin Tool added enrolments
+            $sql = "INSERT INTO student_course_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT DISTINCT
+                      u.USERNAME,
+                      e.COURSEID,
+                      {$studentrole} AS ROLE_NAME,
+                      '',
+                      ''
+                    FROM new_enrolments AS e
+                    INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
+                    WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) > 12";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+            
             // Add a primary key
             $sql = "ALTER TABLE student_course_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
@@ -857,6 +901,21 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // ... and for UAL Admin Tool new enrolments
+            $sql = "INSERT INTO student_course_all_years_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT
+                      u.USERNAME,
+                      e.COURSEID,
+                      {$studentrole} AS ROLE_NAME,
+                      '',
+                      ''
+                    FROM new_enrolments AS e
+                    INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
+                    WHERE COURSEID REGEXP '^[0-9]' AND LENGTH(COURSEID) = 12";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+            
             // Add a primary key
             $sql = "ALTER TABLE student_course_all_years_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
@@ -915,6 +974,21 @@ class target_mis {
             $sqlres = $this->mis->execute($sql);
             $result[] = $sqlres;
 
+            // ... and for UAL Admin Tool new enrolments
+            $sql = "INSERT INTO student_programme_enrolment(USER_ID,COURSE_ID,ROLE_NAME,GROUP_ID,GROUP_NAME)
+                    SELECT
+                      u.USERNAME,
+                      e.COURSEID,
+                      {$studentrole} AS ROLE_NAME,
+                      '',
+                      ''
+                    FROM new_enrolments AS e
+                    INNER JOIN USERS AS u ON e.STUDENTID = u.STUDENTID
+                    WHERE COURSEID LIKE '%PROGR%'";
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+            
             // Add a primary key
             $sql = "ALTER TABLE student_programme_enrolment ADD id INT(11)
                     NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST";
@@ -1091,6 +1165,11 @@ class target_mis {
         $this->create_users($throttle);
         $this->output_time();
 
+        // 3.a. Create users - added through the UAL Admin Tool
+        echo '3.a. Create admin tool users'.$this->get_line_end();
+        $this->create_admin_tool_users($throttle);
+        $this->output_time();
+        
         // Categories:
         // 4. Update categories
         echo '4. Create category'.$this->get_line_end();
@@ -1103,6 +1182,12 @@ class target_mis {
         $this->create_courses($throttle, $targetcategory);
         $this->output_time();
 
+        // Courses:
+        // 5.a. Update courses - added through the UAL Admin Tool
+        echo '5.a. Create admin tool courses'.$this->get_line_end();
+        $this->create_admin_tool_courses($throttle, $targetcategory);
+        $this->output_time();
+        
         // Enrolments:
         // 6. Update internal enrolment tables
         echo '6. Remove enrolment tables'.$this->get_line_end();
@@ -1110,6 +1195,7 @@ class target_mis {
         $this->output_time();
 
         // 7. Create the necessary tables on to the data.
+        //   including new enrolments - added through the UAL Admin Tool
         echo '7. Create enrolment tables'.$this->get_line_end();
         $this->create_enrolment_tables();
         $this->output_time();
@@ -1123,12 +1209,12 @@ class target_mis {
         echo '9. Add student unit enrolments to student enrolment table'.$this->get_line_end();
         $this->update_unit_enrolments();
         $this->output_time();
-
+       
         // 10 ... courses...
         echo '10. Add student course enrolments to student enrolment table'.$this->get_line_end();
         $this->update_course_enrolments();
         $this->output_time();
-
+        
         // 11 ... course (all years)...
         echo '11. Add student course (all years) enrolments to student enrolment table'.$this->get_line_end();
         $this->update_course_all_years_enrolments();
@@ -1138,13 +1224,13 @@ class target_mis {
         echo '12. Add student programme enrolments to student enrolment table'.$this->get_line_end();
         $this->update_programme_enrolments();
         $this->output_time();
-
+    
         // 13 ... Update staff enrolments
         echo '13. Add staff enrolments to staff enrolment table'.$this->get_line_end();
         $staffrole = get_config('local_ual_db_process', 'staffrole');
         $this->update_staff_enrolments($staffrole);
         $this->output_time();
-
+      
         // Perform actual authentication and enrolment?
         $perform_auth = get_config('local_ual_db_process', 'userauth');
         $perform_enrol = get_config('local_ual_db_process', 'userenrol');
@@ -1161,6 +1247,117 @@ class target_mis {
         }
 
         $this->end_timer();
+    }
+    
+    
+    /**
+     * Synch UAL Admin Tool MIS tables
+     */
+    
+    
+    /**
+     * Description: Function to create user records based on users
+     *              created through the UAL Admin Tool (new_users table)
+     */
+    public function create_admin_tool_users($throttle = 0) {
+        $result = array();
+
+        // Are we connected?
+        if(!$this->is_connected()) {
+            $result[] = false;
+            return $result;
+        }
+
+        $sqlres = $this->mis->begin_transaction();
+        $result[] = $sqlres;
+
+        if($sqlres) {
+            // Insert new users where they have a STUDENTID
+            $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
+                    SELECT
+                      u.USERNAME AS SOURCE_USERNAME,
+                      u.FIRSTNAME AS SOURCE_FIRSTNAME,
+                      u.LASTNAME AS SOURCE_LASTNAME,
+                      u.EMAIL AS SOURCE_EMAIL,
+                      u.COLLEGE AS SOURCE_COLLEGE,
+                      u.STUDENTID AS IDNUMBER
+                    FROM new_users AS u
+                    WHERE u.STUDENTID IS NOT NULL";
+
+            if($throttle > 0) {
+                $sql .= " LIMIT 0,".$throttle;
+            }
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            // Insert users where they have a USERNAME but no STUDENTID
+            $sql = "INSERT INTO db_process_users(USERNAME,FIRSTNAME,LASTNAME,EMAIL,INSTITUTION,IDNUMBER)
+                    SELECT
+                      u.USERNAME AS SOURCE_STUDENTID,
+                      u.FIRSTNAME AS SOURCE_FIRSTNAME,
+                      u.LASTNAME AS SOURCE_LASTNAME,
+                      u.EMAIL AS SOURCE_EMAIL,
+                      u.COLLEGE AS SOURCE_COLLEGE,
+                      u.USERNAME AS IDNUMBER
+                    FROM new_users AS u
+                    WHERE u.STUDENTID IS NULL";
+
+            if($throttle > 0) {
+                $sql .= " LIMIT 0,".$throttle;
+            }
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sqlres = $this->mis->commit_transaction();
+            $result[] = $sqlres;
+        }
+
+        return $result;
+    }
+    
+    
+    /**
+     * Description: Function to create course records based on courses
+     *              created through the UAL Admin Tool (new_courses table)
+     */
+    public function create_admin_tool_courses($throttle = 0, $category='Miscellaneous') {
+        $result = array();
+
+        // Are we connected?
+        if(!$this->is_connected()) {
+            $result[] = false;
+            return $result;
+        }
+
+        $sqlres = $this->mis->begin_transaction();
+        $result[] = $sqlres;
+
+        if($sqlres) {
+
+            $category = $this->mis->real_escape_string($category);
+
+            $sql = "INSERT INTO db_process_courses(COURSE_ID,COURSE_NAME,COURSE_SHORTNAME,COURSE_CATEGORY)
+                    SELECT
+                      c.COURSEID AS SOURCE_COURSEID,
+                      c.AOS_DESCRIPTION AS SOURCE_DESCRIPTION,
+                      c.FULL_DESCRIPTION AS SOURCE_FULL_NAME,
+                      {$category} AS CATEGORY
+                    FROM new_courses AS c";
+
+            if($throttle > 0) {
+                $sql .= " LIMIT 0,".$throttle;
+            }
+
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
+
+            $sqlres = $this->mis->commit_transaction();
+            $result[] = $sqlres;
+        }
+
+        return $result;
     }
 }
 ?>
