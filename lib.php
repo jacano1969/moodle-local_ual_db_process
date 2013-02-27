@@ -167,7 +167,8 @@ class target_mis {
                      COURSE_ID varchar(254),
                      COURSE_SHORTNAME varchar(100),
                      COURSE_NAME varchar(100),
-                     COURSE_CATEGORY varchar(254) )
+                     COURSE_CATEGORY varchar(254),
+                     VISIBLE int(11) NOT NULL DEFAULT 1)
                    ENGINE=InnoDB
                    CHARACTER SET utf8 COLLATE utf8_unicode_ci";
             $sqlres = $this->mis->execute($sql);
@@ -1321,6 +1322,9 @@ class target_mis {
     /**
      * Description: Function to create course records based on courses
      *              created through the UAL Admin Tool (new_courses table)
+     *
+     *              This function also hides courses hidden through the
+     *              Admin Tool (hidden_courses)
      */
     public function create_admin_tool_courses($throttle = 0, $category='Miscellaneous') {
         $result = array();
@@ -1355,8 +1359,13 @@ class target_mis {
 
             $sqlres = $this->mis->commit_transaction();
             $result[] = $sqlres;
+        
+            // set visiblity on hidden courses
+            $sql = "UPDATE db_process_courses SET VISIBLE = 0 where COURSE_ID IN(SELECT COURSEID FROM hidden_courses)";
+            $sqlres = $this->mis->execute($sql);
+            $result[] = $sqlres;
         }
-
+        
         return $result;
     }
 }
